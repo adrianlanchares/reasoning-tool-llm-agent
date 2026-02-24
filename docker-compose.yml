@@ -1,6 +1,6 @@
 services:
-  train-sft-sergi:
-    container_name: train-sft-sergi
+  train-sft-nacho:
+    container_name: train-sft-nacho
     build:
       context: .
       dockerfile: Dockerfile
@@ -21,8 +21,8 @@ services:
     working_dir: /app
     command: ["python3", "rlm/train_sft.py"]
 
-  train-grpo-sergi:
-    container_name: train-grpo-sergi
+  train-grpo-nacho:
+    container_name: train-grpo-nacho
     build:
       context: .
       dockerfile: Dockerfile
@@ -44,14 +44,14 @@ services:
     working_dir: /app
     command: ["python3", "rlm/train_grpo.py"]
 
-  inference-rlm-sergi:
-    container_name: inference-rlm-sergi
+  inference-rlm-nacho:
+    container_name: inference-rlm-nacho
     build:
       context: .
       dockerfile: Dockerfile
     image: reasoning-tool-llm-agent
     ports:
-      - "8009:8000"
+      - "8011:8000"
     deploy:
       resources:
         reservations:
@@ -69,8 +69,8 @@ services:
     working_dir: /app
     command: ["python3", "api/app.py"]
 
-  bash-rlm-sergi:
-    container_name: bash-rlm-sergi
+  bash-rlm-nacho:
+    container_name: bash-rlm-nacho
     build:
       context: .
       dockerfile: Dockerfile

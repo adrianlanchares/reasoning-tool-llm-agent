@@ -1,3 +1,5 @@
+import os
+
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_community.document_loaders import DirectoryLoader, TextLoader
 from langchain_community.embeddings import SentenceTransformerEmbeddings
@@ -13,12 +15,10 @@ Herramientas para scraping:
 - BeautifulSoup
 - Selenium Base
 """
-DOCS_DIR = "./documents"
-DB_DIR = "./vectorstore"
+DOCS_DIR = "rag/documents"
+DB_DIR = "rag/vectorstore"
 
 def ingest_documents():
-    import os
-
     # 1. Cargar documentos
     # TODO: Configurar loaders para PDF si es necesario
     loader = DirectoryLoader(DOCS_DIR, glob="**/*.txt", loader_cls=TextLoader)

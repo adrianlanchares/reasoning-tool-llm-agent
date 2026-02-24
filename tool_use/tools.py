@@ -5,6 +5,7 @@ from typing import Any
 
 import requests
 
+from rag.rag_engine import retrieve_context
 # --- Tool 1: Cockcroft-Gault Creatinine Clearance Calculator ---
 
 
@@ -100,6 +101,7 @@ def fda_drug_search(drug_name: str) -> dict[str, Any]:
 AVAILABLE_TOOLS: dict[str, Callable[..., dict[str, Any]]] = {
     "calculate_creatinine_cockcroft": calculate_creatinine_cockcroft,
     "fda_drug_search": fda_drug_search,
+    "rag_retrieve_context": retrieve_context,
 }
 
 # --- JSON Schemas for Qwen2.5 apply_chat_template(tools=...) ---
@@ -160,4 +162,39 @@ TOOL_SCHEMAS: list[dict[str, Any]] = [
             },
         },
     },
+    {
+        "type": "function",
+        "function": {
+            "name": "rag_retrieve_context",
+            "description": (
+                "Retrieve relevant contextual documents from the vector database "
+                "to help answer domain-specific or knowledge-based questions. "
+                "Use this when additional background knowledge is required."
+            ),
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "query": {
+                        "type": "string",
+                        "description": "The user question or search query."
+                    },
+                    "k": {
+                        "type": "integer",
+                        "description": "Number of top similar documents to retrieve.",
+                        "default": 3,
+                        "minimum": 1,
+                        "maximum": 20
+                    },
+                    "metadata_filter": {
+                        "type": "object",
+                        "description": (
+                            "Optional metadata filter in Mongo-style query format "
+                            "to restrict results (e.g., by document type, source, or category)."
+                        )
+                    },
+                },
+                "required": ["query"]
+            },
+        },
+    }
 ]

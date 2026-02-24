@@ -1,7 +1,7 @@
 from langchain_community.vectorstores import Chroma
 from langchain_community.embeddings import SentenceTransformerEmbeddings
 
-DB_DIR = "./vectorstore"
+DB_DIR = "rag/vectorstore"
 embeddings = SentenceTransformerEmbeddings(model_name="all-MiniLM-L6-v2")
 # Cargar la BD existente
 vectordb = Chroma(persist_directory=DB_DIR, embedding_function=embeddings)
@@ -18,47 +18,3 @@ def retrieve_context(query, k=3, metadata_filter=None):
     else:
         docs = vectordb.similarity_search(query, k=k)
     return docs
-
-def format_rag_prompt(query, context_list):
-    """
-    Crea el prompt final inyectando el contexto.
-    """
-    context_str = "\n\n".join(context_list)
-    prompt = f"""Usa la siguiente información de contexto para responder a la pregunta del usuario. Si no sabes la respuesta basándote en el contexto, dilo.
-
-Contexto:
-{context_str}
-
-Pregunta: {query}
-Respuesta:"""
-    return prompt
-
-query = "¿Quién es Hermione Granger?"
-context = retrieve_context(query, k=3)
-print("\n", query)
-print(context)
-
-
-query = "¿Como derrotan a Voldemort?"
-context = retrieve_context(query, k=3)
-print("\n", query)
-print(context)
-
-
-query = "¿Quién es Kelsier?"
-context = retrieve_context(query, k=3)
-print("\n", query)
-print(context)
-
-
-query = "¿Quién mata al Lord Legislador?"
-context = retrieve_context(query, k=3)
-print("\n", query)
-print(context)
-
-# RESULTADO CON FILTRO
-query = "¿Como derrotan a Voldemort?"
-context = retrieve_context(query, k=3, metadata_filter={'title': 'harry_potter'})
-print("\n", query)
-print(context)
-
