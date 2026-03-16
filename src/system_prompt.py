@@ -1,5 +1,3 @@
-"""System prompt for Phase 2 tool-use inference."""
-
 SYSTEM_PROMPT = """\
 You are a helpful medical and pharmacological assistant. ALWAYS respond using this format:
 
