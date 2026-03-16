@@ -1,9 +1,6 @@
 import json
-# Importar componentes de fases anteriores
-# from phase1_training.inference import generate_reasoning, load_rlm_model
-# from phase2_tool_use.tools import get_tools_prompt
-# from phase2_tool_use.tool_handler import parse_and_execute_tool_call
-# from phase3_rag.rag_engine import retrieve_context
+
+from tool_use.system_prompt import TOOL_USE_SYSTEM_PROMPT
 
 class ReActAgent:
     def __init__(self, model, tokenizer):
@@ -11,21 +8,7 @@ class ReActAgent:
         self.tokenizer = tokenizer
         self.tools_prompt = "TODO: Obtener prompt de herramientas (Fase 2)"
         # MEJORAR EL PROMPT DEL SISTEMA. Mirar langsmith, por ejemplo: https://smith.langchain.com/hub/hwchase17
-        self.system_prompt = f"""Eres un agente autónomo útil.
-Usa el siguiente formato de Pensamiento-Acción-Observación para resolver tareas complejas.
-
-{self.tools_prompt}
-
-Formato a seguir:
-Thought: Debo pensar qué hacer a continuación.
-Action: 
-Observation: El resultado de la herramienta.
-... (repetir hasta tener la respuesta final)
-Thought: Ya tengo suficiente información.
-Final Answer: La respuesta final al usuario.
-
-
-"""
+        self.system_prompt = TOOL_USE_SYSTEM_PROMPT
 
     def run(self, user_query, max_steps=5):
         """
