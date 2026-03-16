@@ -22,11 +22,11 @@ OUTPUT_DIR = os.environ.get("FINAL_MODEL_PATH", "./weights/final_rlm_lora")
 DATASET_NAME = "gsm8k"
 
 # HYPERPARAMETERS
-EPOCHS: int = 2
+EPOCHS: int = 3
 BATCH_SIZE: int = 8
 LR: float = 5e-6
 GRPO_GROUP_SIZE = 4
-MAX_NEW_TOKENS: int = 256
+MAX_NEW_TOKENS: int = 1024
 
 PRINT_EVERY = 256
 
