@@ -1,6 +1,6 @@
 services:
-  train-sft-nacho:
-    container_name: train-sft-nacho
+  train-sft-adri:
+    container_name: train-sft-adri
     build:
       context: .
       dockerfile: Dockerfile
@@ -21,8 +21,8 @@ services:
     working_dir: /app
     command: ["python3", "rlm/train_sft.py"]
 
-  train-grpo-nacho:
-    container_name: train-grpo-nacho
+  train-grpo-adri:
+    container_name: train-grpo-adri
     build:
       context: .
       dockerfile: Dockerfile
@@ -44,14 +44,14 @@ services:
     working_dir: /app
     command: ["python3", "rlm/train_grpo.py"]
 
-  inference-rlm-nacho:
-    container_name: inference-rlm-nacho
+  inference-rlm-adri:
+    container_name: inference-rlm-adri
     build:
       context: .
       dockerfile: Dockerfile
     image: reasoning-tool-llm-agent
     ports:
-      - "8011:8000"
+      - "8009:8000"
     deploy:
       resources:
         reservations:
@@ -69,8 +69,8 @@ services:
     working_dir: /app
     command: ["python3", "api/app.py"]
 
-  bash-rlm-nacho:
-    container_name: bash-rlm-nacho
+  bash-adri:
+    container_name: bash-adri
     build:
       context: .
       dockerfile: Dockerfile
