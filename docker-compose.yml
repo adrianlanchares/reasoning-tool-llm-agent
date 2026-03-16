@@ -19,7 +19,7 @@ services:
       - SFT_MODEL_PATH=/app/rlm/weights/sft_lora
       - HF_HOME=/root/.cache/huggingface
     working_dir: /app
-    command: ["python3", "rlm/train_sft.py"]
+    command: ["python3", "src/rlm/train_sft.py"]
 
   train-grpo-adri:
     container_name: train-grpo-adri
@@ -42,7 +42,7 @@ services:
       - FINAL_MODEL_PATH=/app/rlm/weights/final_rlm_lora
       - HF_HOME=/root/.cache/huggingface
     working_dir: /app
-    command: ["python3", "rlm/train_grpo.py"]
+    command: ["python3", "src/rlm/train_grpo.py"]
 
   agent-inference-adri:
     container_name: agent-inference-adri
@@ -67,7 +67,7 @@ services:
       - FINAL_MODEL_PATH=/app/rlm/weights/final_rlm_lora
       - HF_HOME=/root/.cache/huggingface
     working_dir: /app
-    command: ["python3", "api/app.py"]
+    command: ["python3", "src/api/app.py"]
 
   agent-bash-adri:
     container_name: agent-bash-adri

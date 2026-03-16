@@ -8,9 +8,10 @@ import torch
 import torch.nn.functional as F
 from datasets import load_dataset
 from peft import PeftModel
-from rlm.system_prompt import SYSTEM_PROMPT
 from tqdm_loggable.auto import tqdm
 from transformers import AutoModelForCausalLM, AutoTokenizer
+
+from src.system_prompt import SYSTEM_PROMPT
 
 logging.basicConfig(level=logging.INFO)
 

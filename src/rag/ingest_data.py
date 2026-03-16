@@ -5,23 +5,14 @@ from langchain_community.document_loaders import DirectoryLoader, TextLoader
 from langchain_community.embeddings import SentenceTransformerEmbeddings
 from langchain_community.vectorstores import Chroma
 
-"""
-pip install chromadb
-pip install sentence-transformers
-pip install langchain-text-splitters
-pip install langchain
 
-Herramientas para scraping:
-- BeautifulSoup
-- Selenium Base
-"""
-DOCS_DIR = "src/rag/documents"
-DB_DIR = "src/rag/vectorstore"
+DOCS_DIR = "rag_data/documents"
+DB_DIR = "rag_data/vectorstore"
 
 def ingest_documents():
     # 1. Cargar documentos
     # TODO: Configurar loaders para PDF si es necesario
-    loader = DirectoryLoader(DOCS_DIR, glob="**/*.txt", loader_cls=TextLoader)
+    loader = DirectoryLoader(DOCS_DIR, glob="**/*", loader_cls=TextLoader)
     documents = loader.load()
     print(f"Cargados {len(documents)} documentos.")
 

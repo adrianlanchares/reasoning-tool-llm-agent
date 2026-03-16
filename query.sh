@@ -7,7 +7,7 @@ fi
 PROMPT="$1"
 
 # curl -X POST "https://affine-nonastronomically-evelynn.ngrok-free.dev/phase2/tools" \
-curl -X POST "http://localhost:8011/phase2/tools" \
+curl -X POST "http://localhost:8009/phase4/agent" \
   -H "Content-Type: application/json" \
   -d "{\"prompt\": \"$PROMPT\"}" | jq
 echo ""

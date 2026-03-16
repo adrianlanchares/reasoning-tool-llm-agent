@@ -11,9 +11,10 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 # --- IMPORTACIONES DE LOS MÓDULOS DE LOS ALUMNOS ---
 # TODO: Descomentar a medida que se implementen las fases
-from rlm.inference import generate_reasoning, load_rlm_model
-from tool_use.inference import generate_with_tools
-from tool_use.tool_handler import parse_and_execute_tool_call
+from src.rlm.load_model import load_rlm_model
+from src.tool_use.inference import generate_with_tools
+from src.tool_use.tool_handler import parse_and_execute_tool_call
+from src.react.agent import ReActAgent
 
 
 def get_freest_gpu():
@@ -74,9 +75,8 @@ async def startup_event():
         print(f"Error al cargar modelo RLM: {e}")
         MODEL, TOKENIZER = None, None
 
-    # TODO: Descomentar cuando se implemente ReAct
-    # if MODEL:
-    #     AGENT = ReActAgent(MODEL, TOKENIZER)
+    if MODEL:
+        AGENT = ReActAgent(MODEL, TOKENIZER)
 
     print("Inicialización de API completada.")
 
@@ -96,31 +96,31 @@ class GenericResponse(BaseModel):
 
 
 # --- FASE 1: Razonamiento (RLM) ---
-@app.post("/phase1/reasoning", response_model=GenericResponse, tags=["Fase 1"])
-async def phase1_endpoint(request: QueryRequest):
-    """
-    Evalúa el modelo RLM. Debe devolver la respuesta con el razonamiento (CoT) visible.
-    """
-    if not MODEL or not TOKENIZER:
-        return {
-            "response": "ERROR: Modelo de Fase 1 no cargado.",
-            "details": {"status": "model_not_loaded"},
-        }
+# @app.post("/phase1/reasoning", response_model=GenericResponse, tags=["Fase 1"])
+# async def phase1_endpoint(request: QueryRequest):
+#     """
+#     Evalúa el modelo RLM. Debe devolver la respuesta con el razonamiento (CoT) visible.
+#     """
+#     if not MODEL or not TOKENIZER:
+#         return {
+#             "response": "ERROR: Modelo de Fase 1 no cargado.",
+#             "details": {"status": "model_not_loaded"},
+#         }
 
-    try:
-        # Usar la función de inferencia de Fase 1
-        response_text = generate_reasoning(request.prompt, MODEL, TOKENIZER)
-        return {
-            "response": response_text,
-            "trace": [{"step": 0, "content": response_text}],
-            "details": {"stage": "sft_grpo", "status": "success"},
-        }
-    except Exception as e:
-        return {
-            "response": f"ERROR durante la generación: {str(e)}",
-            "trace": [],
-            "details": {"stage": "sft_grpo", "status": "error", "error": str(e)},
-        }
+#     try:
+#         # Usar la función de inferencia de Fase 1
+#         response_text = generate_reasoning(request.prompt, MODEL, TOKENIZER)
+#         return {
+#             "response": response_text,
+#             "trace": [{"step": 0, "content": response_text}],
+#             "details": {"stage": "sft_grpo", "status": "success"},
+#         }
+#     except Exception as e:
+#         return {
+#             "response": f"ERROR durante la generación: {str(e)}",
+#             "trace": [],
+#             "details": {"stage": "sft_grpo", "status": "error", "error": str(e)},
+#         }
 
 
 # --- FASE 2: Tool Use ---
@@ -187,12 +187,7 @@ async def phase4_endpoint(request: QueryRequest):
     if not AGENT:
         return {"final_answer": "ERROR: Agente no inicializado.", "trace": []}
 
-    # TODO: Ejecutar agente
-    # result = AGENT.run(request.prompt)
-    result = {
-        "final_answer": "Placeholder Fase 4 Agent",
-        "trace": [{"step": 0, "content": "..."}],
-    }  # TODO remove
+    result = AGENT.run(request.prompt)
 
     return result
 

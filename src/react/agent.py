@@ -1,5 +1,8 @@
+import torch
+
 from src.system_prompt import SYSTEM_PROMPT
 from src.tool_use.tools import TOOL_SCHEMAS
+from src.tool_use.tool_handler import execute_tool, parse_tool_call
 
 
 class ReActAgent:
@@ -9,7 +12,7 @@ class ReActAgent:
         self.tools_prompt = TOOL_SCHEMAS
         self.system_prompt = SYSTEM_PROMPT
 
-    def run(self, user_query, max_steps=5):
+    def run(self, user_query, max_steps=5, max_new_tokens=1024):
         """
         Ejecuta el bucle ReAct para resolver la query.
         """
@@ -19,72 +22,54 @@ class ReActAgent:
         ]
 
         trace = []  # Para guardar los pasos dados y mostrarlos en la API
+        device = next(self.model.parameters()).device
 
         step = 0
         while step < max_steps:
-            # 1. Generar pensamiento (Thought) y posible Acción
-            # TODO: Llamar al modelo de Fase 1 con el historial actual
-            # model_output = generate_reasoning(current_prompt, self.model, self.tokenizer)
-
-            print(f"--- Step {step} ---")
-            # print(f"Model Output: {model_output}")
-            model_output = (
-                "Placeholder del modelo (Thought + Action placeholder)"  # TODO Remove
+            input_text = self.tokenizer.apply_chat_template(
+                history,
+                tools=TOOL_SCHEMAS,
+                add_generation_prompt=True,
+                tokenize=False,
             )
 
-            # Añadir output al historial y al trace
-            history.append({"role": "assistant", "content": model_output})
-            trace.append(
-                {"step": step, "type": "model_output", "content": model_output}
-            )
+            inputs = self.tokenizer(input_text, return_tensors="pt")
+            inputs = {k: v.to(device) for k, v in inputs.items()}
+            input_len = inputs["input_ids"].shape[-1]
 
-            # 2. Detectar si hay "Final Answer"
-            # TODO: Implementar la detección de "Final Answer" esto debe ser modificado según las
-            # necesitadades de cada equipo, en el caso más sencillo se puede buscar el string "Final Answer:" en el modelo output.
-            # En casos más complejos se puede usar un regex o un modelo de clasificación (con LLM incluso) para detectar si la respuesta final satisface la pregunta del usuario.
-            if "Final Answer:" in model_output:
-                # Extraer respuesta final
-                final_answer = model_output.split("Final Answer:")[-1].strip()
-                return {"final_answer": final_answer, "trace": trace}
-
-            # 3. Intentar ejecutar Acción (Herramienta)
-            # TODO: Usar el handler de Fase 2 y RAG de Fase 3 para ver si hay JSON de herramienta
-            # tool_result = parse_and_execute_tool_call(model_output)
-            tool_result = None  # Placeholder
-
-            if tool_result:
-                print(f"Observation: {tool_result}")
-                observation_msg = f"Observation: {tool_result}"
-                history.append(
-                    {"role": "user", "content": observation_msg}
-                )  # Se suele añadir como rol user o system
-                trace.append(
-                    {"step": step, "type": "observation", "content": tool_result}
+            with torch.no_grad():
+                output_ids = self.model.generate(
+                    **inputs,
+                    max_new_tokens=max_new_tokens,
+                    do_sample=True,
+                    temperature=0.3,
+                    pad_token_id=self.tokenizer.eos_token_id,
                 )
-            else:
-                # Si no hubo herramienta ni respuesta final, forzar al modelo a continuar o parar.
-                if "Action:" in model_output and not tool_result:
-                    history.append(
-                        {
-                            "role": "user",
-                            "content": "Observation: Error: No se pudo ejecutar la acción. Revisa el formato JSON.",
-                        }
-                    )
-                else:
-                    # El modelo solo pensó, dejar que siga en el siguiente loop
-                    pass
 
-            step += 1
+            generated_text = self.tokenizer.decode(
+            output_ids[0][input_len:], skip_special_tokens=True)
+            trace.append({"role": "assistant", "content": generated_text})
 
-        return {
-            "final_answer": "Error: Se excedió el número máximo de pasos.",
-            "trace": trace,
-        }
+            # Check for tool call in the generated text
+            parsed = parse_tool_call(generated_text)
+            if parsed is None:
+                # No tool call — this is the final answer
+                return {"response": generated_text, "trace": trace}
 
+            # Execute the tool and record in trace
+            tool_name, tool_args = parsed
+            tool_result = execute_tool(tool_name, tool_args)
+            trace.append(
+                {
+                    "role": "tool",
+                    "tool_name": tool_name,
+                    "tool_args": tool_args,
+                    "content": tool_result,
+                }
+            )
 
-# Ejemplo de uso (si se ejecuta directamente)
-if __name__ == "__main__":
-    model, tokenizer = None, None
-    agent = ReActAgent(model, tokenizer)
-    # response = agent.run("¿Cuál es la raíz cuadrada de la edad del presidente de Francia?")
-    # print(response)
+            # Append to conversation history for next generation turn
+            history.append({"role": "assistant", "content": generated_text})
+            history.append({"role": "tool", "content": tool_result})
+
+        return {"response": generated_text, "trace": trace}
