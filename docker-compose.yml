@@ -44,8 +44,8 @@ services:
     working_dir: /app
     command: ["python3", "rlm/train_grpo.py"]
 
-  inference-rlm-adri:
-    container_name: inference-rlm-adri
+  agent-inference-adri:
+    container_name: agent-inference-adri
     build:
       context: .
       dockerfile: Dockerfile
@@ -69,8 +69,8 @@ services:
     working_dir: /app
     command: ["python3", "api/app.py"]
 
-  bash-adri:
-    container_name: bash-adri
+  agent-bash-adri:
+    container_name: agent-bash-adri
     build:
       context: .
       dockerfile: Dockerfile
