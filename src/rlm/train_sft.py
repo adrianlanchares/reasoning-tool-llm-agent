@@ -3,11 +3,11 @@ import subprocess
 
 import torch
 from datasets import load_dataset
-from transformers import AutoModelForCausalLM, AutoTokenizer, TrainingArguments
 from peft import LoraConfig, TaskType
+from transformers import AutoModelForCausalLM, AutoTokenizer, TrainingArguments
 from trl import SFTTrainer
 
-from rlm.system_prompt import SYSTEM_PROMPT
+from src.system_prompt import SYSTEM_PROMPT
 
 # Configuration
 MODEL_NAME: str = "Qwen/Qwen2.5-7B-Instruct"
@@ -21,28 +21,37 @@ LR: float = 5e-6
 LORA_RANK: int = 8
 LORA_ALPHA: int = 16
 
+
 def get_freest_gpu():
-    try:        
+    try:
         # Run nvidia-smi to get memory usage
-        result = subprocess.check_output(["nvidia-smi", "--query-gpu=memory.free,index", "--format=csv,nounits,noheader"],encoding="utf-8")        
-        # Parse output: "12345, 0" -> (12345 MB, GPU 0)        
+        result = subprocess.check_output(
+            [
+                "nvidia-smi",
+                "--query-gpu=memory.free,index",
+                "--format=csv,nounits,noheader",
+            ],
+            encoding="utf-8",
+        )
+        # Parse output: "12345, 0" -> (12345 MB, GPU 0)
         gpu_memory = []
-        for line in result.strip().split('\n'): 
-            free_mem, index = line.split(',') 
+        for line in result.strip().split("\n"):
+            free_mem, index = line.split(",")
             gpu_memory.append((int(free_mem), int(index)))
-        # Sort by free memory (descending)        
-        gpu_memory.sort(key=lambda x: x[0], reverse=True)        
-        best_gpu_index = gpu_memory[0][1] 
-        best_gpu_mem = gpu_memory[0][0] 
-        print(f"✅ Auto-selected GPU {best_gpu_index} with {best_gpu_mem}MB free.") 
-        return str(best_gpu_index) 
-    except Exception as e: 
-        print(f"⚠️ Could not detect GPUs automatically: {e}") 
-        return "0" # Fallback
-    
+        # Sort by free memory (descending)
+        gpu_memory.sort(key=lambda x: x[0], reverse=True)
+        best_gpu_index = gpu_memory[0][1]
+        best_gpu_mem = gpu_memory[0][0]
+        print(f"✅ Auto-selected GPU {best_gpu_index} with {best_gpu_mem}MB free.")
+        return str(best_gpu_index)
+    except Exception as e:
+        print(f"⚠️ Could not detect GPUs automatically: {e}")
+        return "0"  # Fallback
+
 
 os.environ["CUDA_VISIBLE_DEVICES"] = get_freest_gpu()
 print(f"Using GPU: {os.environ['CUDA_VISIBLE_DEVICES']}")
+
 
 def formatting_prompts_func(example: dict, tokenizer: AutoTokenizer) -> str:
     question = example["question"]
@@ -59,15 +68,22 @@ def formatting_prompts_func(example: dict, tokenizer: AutoTokenizer) -> str:
     messages = [
         {"role": "system", "content": SYSTEM_PROMPT},
         {"role": "user", "content": question},
-        {"role": "assistant", "content": f"<think>\n{reasoning}\n</think>\n<answer>\n{final_answer}\n</answer>"},
+        {
+            "role": "assistant",
+            "content": f"<think>\n{reasoning}\n</think>\n<answer>\n{final_answer}\n</answer>",
+        },
     ]
-    return tokenizer.apply_chat_template(messages, tokenize=False, add_generation_prompt=False)
+    return tokenizer.apply_chat_template(
+        messages, tokenize=False, add_generation_prompt=False
+    )
 
 
 def train():
     # 1. Load Model and Tokenizer
     tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME)
-    model = AutoModelForCausalLM.from_pretrained(MODEL_NAME, device_map={"": 0}, dtype=torch.bfloat16)
+    model = AutoModelForCausalLM.from_pretrained(
+        MODEL_NAME, device_map={"": 0}, dtype=torch.bfloat16
+    )
 
     # 2. Configure LoRA
     peft_config = LoraConfig(
@@ -107,6 +123,7 @@ def train():
     trainer.train()
     trainer.save_model(OUTPUT_DIR)
     print("SFT Training finished")
+
 
 if __name__ == "__main__":
     train()

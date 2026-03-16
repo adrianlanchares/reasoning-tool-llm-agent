@@ -5,7 +5,8 @@ from typing import Any
 
 import requests
 
-from rag.rag_engine import retrieve_context
+from src.rag.rag_engine import retrieve_context
+
 # --- Tool 1: Cockcroft-Gault Creatinine Clearance Calculator ---
 
 
@@ -176,25 +177,25 @@ TOOL_SCHEMAS: list[dict[str, Any]] = [
                 "properties": {
                     "query": {
                         "type": "string",
-                        "description": "The user question or search query."
+                        "description": "The user question or search query.",
                     },
                     "k": {
                         "type": "integer",
                         "description": "Number of top similar documents to retrieve.",
                         "default": 3,
                         "minimum": 1,
-                        "maximum": 20
+                        "maximum": 20,
                     },
                     "metadata_filter": {
                         "type": "object",
                         "description": (
                             "Optional metadata filter in Mongo-style query format "
                             "to restrict results (e.g., by document type, source, or category)."
-                        )
+                        ),
                     },
                 },
-                "required": ["query"]
+                "required": ["query"],
             },
         },
-    }
+    },
 ]

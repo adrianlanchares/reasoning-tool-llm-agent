@@ -1,11 +1,12 @@
-from tool_use.system_prompt import SYSTEM_PROMPT
+from src.system_prompt import SYSTEM_PROMPT
+from src.tool_use.tools import TOOL_SCHEMAS
 
 
 class ReActAgent:
     def __init__(self, model, tokenizer):
         self.model = model
         self.tokenizer = tokenizer
-        self.tools_prompt = "TODO: Obtener prompt de herramientas (Fase 2)"
+        self.tools_prompt = TOOL_SCHEMAS
         self.system_prompt = SYSTEM_PROMPT
 
     def run(self, user_query, max_steps=5):

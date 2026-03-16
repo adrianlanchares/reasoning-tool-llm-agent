@@ -3,7 +3,7 @@
 import json
 import re
 
-from tool_use.tools import AVAILABLE_TOOLS
+from src.tool_use.tools import AVAILABLE_TOOLS
 
 # Matches content between <tool_call> and </tool_call> tags (Qwen2.5 native format)
 _TOOL_CALL_PATTERN = re.compile(

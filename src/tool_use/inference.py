@@ -3,12 +3,12 @@
 from typing import Any
 
 import torch
+from rlm.inference import load_rlm_model
 from transformers import AutoTokenizer, PreTrainedModel
 
-from rlm.inference import load_rlm_model
-from tool_use.system_prompt import SYSTEM_PROMPT
-from tool_use.tool_handler import execute_tool, parse_tool_call
-from tool_use.tools import TOOL_SCHEMAS
+from src.system_prompt import SYSTEM_PROMPT
+from src.tool_use.tool_handler import execute_tool, parse_tool_call
+from src.tool_use.tools import TOOL_SCHEMAS
 
 MAX_TOOL_TURNS: int = 3
 MAX_NEW_TOKENS: int = 1024
@@ -77,12 +77,14 @@ def generate_with_tools(
         # Execute the tool and record in trace
         tool_name, tool_args = parsed
         tool_result = execute_tool(tool_name, tool_args)
-        trace.append({
-            "role": "tool",
-            "tool_name": tool_name,
-            "tool_args": tool_args,
-            "content": tool_result,
-        })
+        trace.append(
+            {
+                "role": "tool",
+                "tool_name": tool_name,
+                "tool_args": tool_args,
+                "content": tool_result,
+            }
+        )
 
         # Append to conversation history for next generation turn
         messages.append({"role": "assistant", "content": generated_text})
