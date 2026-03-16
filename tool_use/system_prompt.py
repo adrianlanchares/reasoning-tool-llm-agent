@@ -1,6 +1,6 @@
 """System prompt for Phase 2 tool-use inference."""
 
-TOOL_USE_SYSTEM_PROMPT = """\
+SYSTEM_PROMPT = """\
 You are a helpful medical and pharmacological assistant. ALWAYS respond using this format:
 
 1. Reason step-by-step inside <think>...</think> tags.

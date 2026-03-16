@@ -1,19 +1,17 @@
-import re
+# To make tqdm work in docker logs
+import logging
 import os
-import sys
+import re
 import subprocess
 
 import torch
 import torch.nn.functional as F
-from transformers import AutoModelForCausalLM, AutoTokenizer
-from peft import PeftModel
 from datasets import load_dataset
-from tqdm_loggable.auto import tqdm
-
+from peft import PeftModel
 from rlm.system_prompt import SYSTEM_PROMPT
+from tqdm_loggable.auto import tqdm
+from transformers import AutoModelForCausalLM, AutoTokenizer
 
-# To make tqdm work in docker logs
-import logging
 logging.basicConfig(level=logging.INFO)
 
 # Configuration
@@ -31,34 +29,42 @@ MAX_NEW_TOKENS: int = 256
 
 PRINT_EVERY = 256
 
+
 def get_freest_gpu():
-    try:        
+    try:
         # Run nvidia-smi to get memory usage
-        result = subprocess.check_output(["nvidia-smi", "--query-gpu=memory.free,index", "--format=csv,nounits,noheader"],encoding="utf-8")        
-        # Parse output: "12345, 0" -> (12345 MB, GPU 0)        
+        result = subprocess.check_output(
+            [
+                "nvidia-smi",
+                "--query-gpu=memory.free,index",
+                "--format=csv,nounits,noheader",
+            ],
+            encoding="utf-8",
+        )
+        # Parse output: "12345, 0" -> (12345 MB, GPU 0)
         gpu_memory = []
-        for line in result.strip().split('\n'): 
-            free_mem, index = line.split(',') 
+        for line in result.strip().split("\n"):
+            free_mem, index = line.split(",")
             gpu_memory.append((int(free_mem), int(index)))
-        # Sort by free memory (descending)        
-        gpu_memory.sort(key=lambda x: x[0], reverse=True)        
-        best_gpu_index = gpu_memory[0][1] 
-        best_gpu_mem = gpu_memory[0][0] 
-        print(f"✅ Auto-selected GPU {best_gpu_index} with {best_gpu_mem}MB free.") 
-        return str(best_gpu_index) 
-    except Exception as e: 
-        print(f"⚠️ Could not detect GPUs automatically: {e}") 
-        return "0" # Fallback
-    
+        # Sort by free memory (descending)
+        gpu_memory.sort(key=lambda x: x[0], reverse=True)
+        best_gpu_index = gpu_memory[0][1]
+        best_gpu_mem = gpu_memory[0][0]
+        print(f"✅ Auto-selected GPU {best_gpu_index} with {best_gpu_mem}MB free.")
+        return str(best_gpu_index)
+    except Exception as e:
+        print(f"⚠️ Could not detect GPUs automatically: {e}")
+        return "0"  # Fallback
+
 
 os.environ["CUDA_VISIBLE_DEVICES"] = get_freest_gpu()
 print(f"Using GPU: {os.environ['CUDA_VISIBLE_DEVICES']}")
 
 # pre-compile re matcher
-answer_regex = re.compile(r'Response: (\d+(?:\.\d+)?)')
-think_first_regex = re.compile(r'<think>')
-think_last_regex = re.compile(r'</think>')
-think_content_regex = re.compile(r'<think>(.*)</think>', re.DOTALL)
+answer_regex = re.compile(r"Response: (\d+(?:\.\d+)?)")
+think_first_regex = re.compile(r"<think>")
+think_last_regex = re.compile(r"</think>")
+think_content_regex = re.compile(r"<think>(.*)</think>", re.DOTALL)
 
 
 def reward_function(generated_text: str, ground_truth_answer) -> float:
@@ -77,7 +83,7 @@ def reward_function(generated_text: str, ground_truth_answer) -> float:
                 reward += 0.7
         except (ValueError, TypeError):
             reward += 0.0
-    
+
     if think_first_regex.search(generated_text):
         reward += 0.1
     if think_last_regex.search(generated_text):
@@ -93,7 +99,9 @@ def _build_prompt(question: str, tokenizer: AutoTokenizer) -> str:
         {"role": "system", "content": SYSTEM_PROMPT},
         {"role": "user", "content": question},
     ]
-    return tokenizer.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)
+    return tokenizer.apply_chat_template(
+        messages, tokenize=False, add_generation_prompt=True
+    )
 
 
 def train_grpo():
@@ -109,7 +117,9 @@ def train_grpo():
     model = model.to(device)
     model.train()
 
-    optimizer = torch.optim.AdamW(filter(lambda p: p.requires_grad, model.parameters()), lr=LR)
+    optimizer = torch.optim.AdamW(
+        filter(lambda p: p.requires_grad, model.parameters()), lr=LR
+    )
 
     # 2. Load dataset and prepare simple iteration
     dataset = load_dataset(DATASET_NAME, name="main", split="train")
@@ -120,8 +130,9 @@ def train_grpo():
     n_examples = len(examples)
 
     for epoch in range(EPOCHS):
-
-        for start in tqdm(range(0, n_examples, BATCH_SIZE), desc=f"Epoch {epoch+1}/{EPOCHS}"):
+        for start in tqdm(
+            range(0, n_examples, BATCH_SIZE), desc=f"Epoch {epoch + 1}/{EPOCHS}"
+        ):
             batch = examples[start : start + BATCH_SIZE]
 
             # For each question in batch generate `group_size` responses

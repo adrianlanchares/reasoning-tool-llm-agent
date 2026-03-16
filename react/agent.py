@@ -1,14 +1,12 @@
-import json
+from tool_use.system_prompt import SYSTEM_PROMPT
 
-from tool_use.system_prompt import TOOL_USE_SYSTEM_PROMPT
 
 class ReActAgent:
     def __init__(self, model, tokenizer):
         self.model = model
         self.tokenizer = tokenizer
         self.tools_prompt = "TODO: Obtener prompt de herramientas (Fase 2)"
-        # MEJORAR EL PROMPT DEL SISTEMA. Mirar langsmith, por ejemplo: https://smith.langchain.com/hub/hwchase17
-        self.system_prompt = TOOL_USE_SYSTEM_PROMPT
+        self.system_prompt = SYSTEM_PROMPT
 
     def run(self, user_query, max_steps=5):
         """
@@ -16,28 +14,32 @@ class ReActAgent:
         """
         history = [
             {"role": "system", "content": self.system_prompt},
-            {"role": "user", "content": user_query}
+            {"role": "user", "content": user_query},
         ]
-        
-        trace = [] # Para guardar los pasos dados y mostrarlos en la API
+
+        trace = []  # Para guardar los pasos dados y mostrarlos en la API
 
         step = 0
         while step < max_steps:
             # 1. Generar pensamiento (Thought) y posible Acción
             # TODO: Llamar al modelo de Fase 1 con el historial actual
             # model_output = generate_reasoning(current_prompt, self.model, self.tokenizer)
-            
+
             print(f"--- Step {step} ---")
             # print(f"Model Output: {model_output}")
-            model_output = "Placeholder del modelo (Thought + Action placeholder)" # TODO Remove
-            
+            model_output = (
+                "Placeholder del modelo (Thought + Action placeholder)"  # TODO Remove
+            )
+
             # Añadir output al historial y al trace
             history.append({"role": "assistant", "content": model_output})
-            trace.append({"step": step, "type": "model_output", "content": model_output})
+            trace.append(
+                {"step": step, "type": "model_output", "content": model_output}
+            )
 
             # 2. Detectar si hay "Final Answer"
             # TODO: Implementar la detección de "Final Answer" esto debe ser modificado según las
-            # necesitadades de cada equipo, en el caso más sencillo se puede buscar el string "Final Answer:" en el modelo output. 
+            # necesitadades de cada equipo, en el caso más sencillo se puede buscar el string "Final Answer:" en el modelo output.
             # En casos más complejos se puede usar un regex o un modelo de clasificación (con LLM incluso) para detectar si la respuesta final satisface la pregunta del usuario.
             if "Final Answer:" in model_output:
                 # Extraer respuesta final
@@ -47,28 +49,41 @@ class ReActAgent:
             # 3. Intentar ejecutar Acción (Herramienta)
             # TODO: Usar el handler de Fase 2 y RAG de Fase 3 para ver si hay JSON de herramienta
             # tool_result = parse_and_execute_tool_call(model_output)
-            tool_result = None # Placeholder
+            tool_result = None  # Placeholder
 
             if tool_result:
                 print(f"Observation: {tool_result}")
                 observation_msg = f"Observation: {tool_result}"
-                history.append({"role": "user", "content": observation_msg}) # Se suele añadir como rol user o system
-                trace.append({"step": step, "type": "observation", "content": tool_result})
+                history.append(
+                    {"role": "user", "content": observation_msg}
+                )  # Se suele añadir como rol user o system
+                trace.append(
+                    {"step": step, "type": "observation", "content": tool_result}
+                )
             else:
                 # Si no hubo herramienta ni respuesta final, forzar al modelo a continuar o parar.
                 if "Action:" in model_output and not tool_result:
-                    history.append({"role": "user", "content": "Observation: Error: No se pudo ejecutar la acción. Revisa el formato JSON."})
+                    history.append(
+                        {
+                            "role": "user",
+                            "content": "Observation: Error: No se pudo ejecutar la acción. Revisa el formato JSON.",
+                        }
+                    )
                 else:
                     # El modelo solo pensó, dejar que siga en el siguiente loop
                     pass
-            
+
             step += 1
 
-        return {"final_answer": "Error: Se excedió el número máximo de pasos.", "trace": trace}
+        return {
+            "final_answer": "Error: Se excedió el número máximo de pasos.",
+            "trace": trace,
+        }
+
 
 # Ejemplo de uso (si se ejecuta directamente)
 if __name__ == "__main__":
-    model, tokenizer = None, None 
+    model, tokenizer = None, None
     agent = ReActAgent(model, tokenizer)
     # response = agent.run("¿Cuál es la raíz cuadrada de la edad del presidente de Francia?")
     # print(response)

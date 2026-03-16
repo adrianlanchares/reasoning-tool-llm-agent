@@ -6,7 +6,7 @@ import torch
 from transformers import AutoTokenizer, PreTrainedModel
 
 from rlm.inference import load_rlm_model
-from tool_use.system_prompt import TOOL_USE_SYSTEM_PROMPT
+from tool_use.system_prompt import SYSTEM_PROMPT
 from tool_use.tool_handler import execute_tool, parse_tool_call
 from tool_use.tools import TOOL_SCHEMAS
 
@@ -34,7 +34,7 @@ def generate_with_tools(
         Dict with 'response' (final model text) and 'trace' (list of turn dicts).
     """
     messages: list[dict[str, str]] = [
-        {"role": "system", "content": TOOL_USE_SYSTEM_PROMPT},
+        {"role": "system", "content": SYSTEM_PROMPT},
         {"role": "user", "content": prompt},
     ]
     trace: list[dict[str, Any]] = []
