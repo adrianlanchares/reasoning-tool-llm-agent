@@ -15,8 +15,8 @@ Herramientas para scraping:
 - BeautifulSoup
 - Selenium Base
 """
-DOCS_DIR = "rag/documents"
-DB_DIR = "rag/vectorstore"
+DOCS_DIR = "src/rag/documents"
+DB_DIR = "src/rag/vectorstore"
 
 def ingest_documents():
     # 1. Cargar documentos
