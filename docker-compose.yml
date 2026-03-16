@@ -16,7 +16,7 @@ services:
       - .:/app
       - ./hf_cache:/root/.cache/huggingface
     environment:
-      - SFT_MODEL_PATH=/app/rlm/weights/sft_lora
+      - SFT_MODEL_PATH=/app/weights/sft_lora
       - HF_HOME=/root/.cache/huggingface
     working_dir: /app
     command: ["python3", "-m", "src.rlm.train_sft"]
@@ -38,8 +38,8 @@ services:
       - .:/app
       - ./hf_cache:/root/.cache/huggingface
     environment:
-      - SFT_MODEL_PATH=/app/rlm/weights/sft_lora
-      - FINAL_MODEL_PATH=/app/rlm/weights/final_rlm_lora
+      - SFT_MODEL_PATH=/app/weights/sft_lora
+      - FINAL_MODEL_PATH=/app/weights/final_rlm_lora
       - HF_HOME=/root/.cache/huggingface
     working_dir: /app
     command: ["python3", "-m", "src.rlm.train_grpo"]
@@ -63,8 +63,8 @@ services:
       - .:/app
       - ./hf_cache:/root/.cache/huggingface
     environment:
-      - SFT_MODEL_PATH=/app/rlm/weights/sft_lora
-      - FINAL_MODEL_PATH=/app/rlm/weights/final_rlm_lora
+      - SFT_MODEL_PATH=/app/weights/sft_lora
+      - FINAL_MODEL_PATH=/app/weights/final_rlm_lora
       - HF_HOME=/root/.cache/huggingface
     working_dir: /app
     command: ["python3", "-m", "src.api.app"]
@@ -88,8 +88,8 @@ services:
       - .:/app
       - ./hf_cache:/root/.cache/huggingface
     environment:
-      - SFT_MODEL_PATH=/app/rlm/weights/sft_lora
-      - FINAL_MODEL_PATH=/app/rlm/weights/final_rlm_lora
+      - SFT_MODEL_PATH=/app/weights/sft_lora
+      - FINAL_MODEL_PATH=/app/weights/final_rlm_lora
       - HF_HOME=/root/.cache/huggingface
     working_dir: /app
     command: ["bash"]

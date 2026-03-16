@@ -2,7 +2,7 @@
 weights/
 hf_cache/
 __pycache__/
+rag_data/
 
 .DS_Store
 
-rag_data/

@@ -3,9 +3,9 @@
 from typing import Any
 
 import torch
-from rlm.inference import load_rlm_model
 from transformers import AutoTokenizer, PreTrainedModel
 
+from src.rlm.load_model import load_rlm_model
 from src.system_prompt import SYSTEM_PROMPT
 from src.tool_use.tool_handler import execute_tool, parse_tool_call
 from src.tool_use.tools import TOOL_SCHEMAS
