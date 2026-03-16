@@ -11,7 +11,7 @@ from peft import PeftModel
 from tqdm_loggable.auto import tqdm
 from transformers import AutoModelForCausalLM, AutoTokenizer
 
-from src.system_prompt import SYSTEM_PROMPT
+from src.system_prompt import TRAINING_SYSTEM_PROMPT
 
 logging.basicConfig(level=logging.INFO)
 
@@ -97,7 +97,7 @@ def reward_function(generated_text: str, ground_truth_answer) -> float:
 
 def _build_prompt(question: str, tokenizer: AutoTokenizer) -> str:
     messages = [
-        {"role": "system", "content": SYSTEM_PROMPT},
+        {"role": "system", "content": TRAINING_SYSTEM_PROMPT},
         {"role": "user", "content": question},
     ]
     return tokenizer.apply_chat_template(

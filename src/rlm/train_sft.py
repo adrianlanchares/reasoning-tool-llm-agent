@@ -7,7 +7,7 @@ from peft import LoraConfig, TaskType
 from transformers import AutoModelForCausalLM, AutoTokenizer, TrainingArguments
 from trl import SFTTrainer
 
-from src.system_prompt import SYSTEM_PROMPT
+from src.system_prompt import TRAINING_SYSTEM_PROMPT
 
 # Configuration
 MODEL_NAME: str = "Qwen/Qwen2.5-7B-Instruct"
@@ -66,7 +66,7 @@ def formatting_prompts_func(example: dict, tokenizer: AutoTokenizer) -> str:
         final_answer = ""
 
     messages = [
-        {"role": "system", "content": SYSTEM_PROMPT},
+        {"role": "system", "content": TRAINING_SYSTEM_PROMPT},
         {"role": "user", "content": question},
         {
             "role": "assistant",

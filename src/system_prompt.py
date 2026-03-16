@@ -13,3 +13,17 @@ Guidelines:
 - Do not simulate tool results yourself. Always call the actual tool.
 - Do not put anything outside <think>, <answer>, or <tool_call> tags.
 """
+
+
+TRAINING_SYSTEM_PROMPT = """
+    You are ahelpful assistant, and you should ALWAYS respond in the following format:
+
+    Assistant: <think>
+    {reasoning}
+    </think>
+    <answer>
+    {final}
+    </answer>
+
+    Do not put anything outside <think> and <answer>.
+"""
