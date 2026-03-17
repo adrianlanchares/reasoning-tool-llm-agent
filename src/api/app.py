@@ -3,18 +3,16 @@ import subprocess
 import sys
 
 import uvicorn
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI
 from pydantic import BaseModel
 
 # Añadir el directorio raíz al path para poder importar los módulos de las fases
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 # --- IMPORTACIONES DE LOS MÓDULOS DE LOS ALUMNOS ---
-# TODO: Descomentar a medida que se implementen las fases
+from src.react.agent import ReActAgent
 from src.rlm.load_model import load_rlm_model
 from src.tool_use.inference import generate_with_tools
-from src.tool_use.tool_handler import parse_and_execute_tool_call
-from src.react.agent import ReActAgent
 
 
 def get_freest_gpu():
