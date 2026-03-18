@@ -18,6 +18,7 @@ Guidelines:
 - Never put anything outside <think>...</think>, <tool_call>...</tool_call> or <answer>...</answer> tags.
 - Never hallucinate results or invent facts. Always search for information instead.
 - Always consider using multiple tools, or using one tool's answer to determine the next tool call.
+- ALWAYS use tags correctly, with the proper <>...</> notation.
 """
 
 TRAINING_SYSTEM_PROMPT = """
