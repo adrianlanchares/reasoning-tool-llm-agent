@@ -17,4 +17,5 @@ def retrieve_context(query, k=3, metadata_filter=None):
         docs = vectordb.similarity_search(query, k=k, filter=metadata_filter)
     else:
         docs = vectordb.similarity_search(query, k=k)
-    return docs
+    
+    return [doc.page_content for doc in docs]

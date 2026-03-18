@@ -94,31 +94,34 @@ class GenericResponse(BaseModel):
 
 
 # --- FASE 1: Razonamiento (RLM) ---
-# @app.post("/phase1/reasoning", response_model=GenericResponse, tags=["Fase 1"])
-# async def phase1_endpoint(request: QueryRequest):
-#     """
-#     Evalúa el modelo RLM. Debe devolver la respuesta con el razonamiento (CoT) visible.
-#     """
-#     if not MODEL or not TOKENIZER:
-#         return {
-#             "response": "ERROR: Modelo de Fase 1 no cargado.",
-#             "details": {"status": "model_not_loaded"},
-#         }
+@app.post("/phase1/reasoning", response_model=GenericResponse, tags=["Fase 1"])
+async def phase1_endpoint(request: QueryRequest):
+    """
+    Evalúa el modelo RLM. Debe devolver la respuesta con el razonamiento (CoT) visible.
+    """
+    if not MODEL or not TOKENIZER:
+        return {
+            "response": "ERROR: Modelo de Fase 1 no cargado.",
+            "details": {"status": "model_not_loaded"},
+        }
+    
+    # Make model not use tools
+    request.prompt += "\n\n(Note: For this phase, do NOT call any tools. Just reason and answer.)"
 
-#     try:
-#         # Usar la función de inferencia de Fase 1
-#         response_text = generate_reasoning(request.prompt, MODEL, TOKENIZER)
-#         return {
-#             "response": response_text,
-#             "trace": [{"step": 0, "content": response_text}],
-#             "details": {"stage": "sft_grpo", "status": "success"},
-#         }
-#     except Exception as e:
-#         return {
-#             "response": f"ERROR durante la generación: {str(e)}",
-#             "trace": [],
-#             "details": {"stage": "sft_grpo", "status": "error", "error": str(e)},
-#         }
+    try:
+        # Usar la función de inferencia de Fase 1
+        response_text = generate_with_tools(request.prompt, MODEL, TOKENIZER)
+        return {
+            "response": response_text["response"],
+            "trace": [{"step": 0, "content": response_text["response"]}],
+            "details": {"stage": "sft_grpo", "status": "success"},
+        }
+    except Exception as e:
+        return {
+            "response": f"ERROR durante la generación: {str(e)}",
+            "trace": [],
+            "details": {"stage": "sft_grpo", "status": "error", "error": str(e)},
+        }
 
 
 # --- FASE 2: Tool Use ---
@@ -163,17 +166,34 @@ async def phase3_endpoint(request: QueryRequest):
     """
     Evalúa el RAG. Debe recuperar contexto de los documentos y responder.
     """
-    # TODO: Implementar lógica RAG
-    # 1. Recuperar contexto
-    # context_list = retrieve_context(request.prompt)
-    # 2. Formatear prompt
-    # rag_prompt = format_rag_prompt(request.prompt, context_list)
-    # 3. Generar con el modelo (opcional, o devolver solo el contexto recuperado para evaluar)
 
-    return {
-        "response": "Placeholder Fase 3 (RAG)",
-        "details": {"retrieved_docs": ["doc1_placeholder", "doc2_placeholder"]},
-    }
+    if not MODEL or not TOKENIZER:
+        return {
+            "response": "ERROR: Modelo de Fase 3 no cargado.",
+            "details": {"status": "model_not_loaded"},
+        }
+
+    try:
+        # Use the multi-turn tool-use inference loop
+        result = generate_with_tools(request.prompt, MODEL, TOKENIZER)
+
+        print(f"Tool-use response: {result['response']}")
+        print(f"Trace: {result['trace']}")
+
+        # Check if any tools were called by looking at the trace
+        tool_called = any(step.get("role") == "tool" for step in result["trace"])
+
+        return {
+            "response": result["response"],
+            "trace": result["trace"],
+            "details": {"tool_called": tool_called, "status": "success"},
+        }
+    except Exception as e:
+        return {
+            "response": f"ERROR during tool-use generation: {str(e)}",
+            "trace": [],
+            "details": {"status": "error", "error": str(e)},
+        }
 
 
 # --- FASE 4: Agente ReAct ---
