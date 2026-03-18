@@ -137,6 +137,8 @@ async def phase2_endpoint(request: QueryRequest):
             "details": {"status": "model_not_loaded"},
         }
 
+    request.prompt += "\n\n(Note: For this phase, do not use the rag_retrieve_context tool.)"
+
     try:
         # Use the multi-turn tool-use inference loop
         result = generate_with_tools(request.prompt, MODEL, TOKENIZER)
@@ -172,6 +174,8 @@ async def phase3_endpoint(request: QueryRequest):
             "response": "ERROR: Modelo de Fase 3 no cargado.",
             "details": {"status": "model_not_loaded"},
         }
+
+    request.prompt += "\n\n(Note: For this phase, only use the rag_retrieve_context tool if needed.)"
 
     try:
         # Use the multi-turn tool-use inference loop
