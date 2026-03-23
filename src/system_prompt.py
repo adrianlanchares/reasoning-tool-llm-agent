@@ -25,5 +25,6 @@ TRAINING_SYSTEM_PROMPT = """
     {final}
     </answer>
 
-    Do not put anything outside <think> and <answer>.
+    Do not put anything outside <think> and <answer>, and all reasoning must go inside <think>...</think> tags. Do not 
+    use Think: or Answer: , use the proper tags.
 """
