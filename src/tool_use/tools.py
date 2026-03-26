@@ -150,6 +150,7 @@ TOOL_SCHEMAS: list[dict[str, Any]] = [
                 "Search the OpenFDA database for drug labeling information "
                 "including indications, warnings, and dosage. Use this for "
                 "questions about medications, drug side effects, or drug interactions."
+                "If this tool fails, try again with a different drug name or brand."
             ),
             "parameters": {
                 "type": "object",
