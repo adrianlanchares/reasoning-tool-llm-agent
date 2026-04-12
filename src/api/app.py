@@ -73,7 +73,7 @@ async def startup_event():
         print(f"Error al cargar modelo RLM: {e}")
         MODEL, TOKENIZER = None, None
 
-    if MODEL:
+    if MODEL is not None:
         AGENT = ReActAgent(MODEL, TOKENIZER)
 
     print("Inicialización de API completada.")
@@ -99,7 +99,7 @@ async def phase1_endpoint(request: QueryRequest):
     """
     Evalúa el modelo RLM. Debe devolver la respuesta con el razonamiento (CoT) visible.
     """
-    if not MODEL or not TOKENIZER:
+    if MODEL is None or TOKENIZER is None:
         return {
             "response": "ERROR: Modelo de Fase 1 no cargado.",
             "details": {"status": "model_not_loaded"},
@@ -131,7 +131,7 @@ async def phase2_endpoint(request: QueryRequest):
     Evalúa la capacidad de llamar herramientas.
     Si el prompt requiere una herramienta, debe devolver la ejecución simulada.
     """
-    if not MODEL or not TOKENIZER:
+    if MODEL is None or TOKENIZER is None:
         return {
             "response": "ERROR: Modelo de Fase 2 no cargado.",
             "details": {"status": "model_not_loaded"},
@@ -169,7 +169,7 @@ async def phase3_endpoint(request: QueryRequest):
     Evalúa el RAG. Debe recuperar contexto de los documentos y responder.
     """
 
-    if not MODEL or not TOKENIZER:
+    if MODEL is None or TOKENIZER is None:
         return {
             "response": "ERROR: Modelo de Fase 3 no cargado.",
             "details": {"status": "model_not_loaded"},

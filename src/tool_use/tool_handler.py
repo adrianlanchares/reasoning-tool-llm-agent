@@ -53,13 +53,40 @@ def execute_tool(name: str, arguments: dict[str, object]) -> str:
     Returns:
         JSON-encoded string of the tool result or error.
     """
-    func = AVAILABLE_TOOLS[name]
+    spec = AVAILABLE_TOOLS.get(name)
+    if spec is None:
+        return json.dumps(
+            {
+                "status": "error",
+                "tool_name": name,
+                "message": f"Unknown tool '{name}'.",
+            },
+            ensure_ascii=False,
+        )
+
     try:
-        result = func(**arguments)
+        raw_result = spec.func(**arguments)
     except TypeError as exc:
-        result = {"error": f"Invalid arguments for '{name}': {exc}"}
+        result = {
+            "status": "error",
+            "tool_name": name,
+            "message": f"Invalid arguments for '{name}': {exc}",
+        }
     except Exception as exc:
-        result = {"error": f"Tool '{name}' failed: {exc}"}
+        result = {
+            "status": "error",
+            "tool_name": name,
+            "message": f"Tool '{name}' failed: {exc}",
+        }
+    else:
+        try:
+            result = spec.formatter(raw_result)
+        except Exception as exc:  # pragma: no cover - defensive formatting guard
+            result = {
+                "status": "error",
+                "tool_name": name,
+                "message": f"Tool formatter for '{name}' failed: {exc}",
+            }
 
     return json.dumps(result, ensure_ascii=False)
 

@@ -1,10 +1,9 @@
 services:
-  train-sft-adri:
-    container_name: train-sft-adri
+  train-sft :
     build:
       context: .
-      dockerfile: Dockerfile
-    image: reasoning-tool-llm-agent
+      dockerfile: Dockerfile  # .train - for gemma4
+    image: nas-rlm-train:latest
     deploy:
       resources:
         reservations:
@@ -16,17 +15,16 @@ services:
       - .:/app
       - ./hf_cache:/root/.cache/huggingface
     environment:
-      - SFT_MODEL_PATH=/app/weights/sft_lora
-      - HF_HOME=/root/.cache/huggingface
+      SFT_MODEL_PATH: /app/weights/qwen_gsm8k_sft_lora
+      HF_HOME: /root/.cache/huggingface
     working_dir: /app
     command: ["python3", "-m", "src.rlm.train_sft"]
 
-  train-grpo-adri:
-    container_name: train-grpo-adri
+  train-grpo:
     build:
       context: .
-      dockerfile: Dockerfile
-    image: reasoning-tool-llm-agent
+      dockerfile: Dockerfile  # .train - for gemma4
+    image: nas-rlm-train:latest
     deploy:
       resources:
         reservations:
@@ -38,20 +36,19 @@ services:
       - .:/app
       - ./hf_cache:/root/.cache/huggingface
     environment:
-      - SFT_MODEL_PATH=/app/weights/sft_lora
-      - FINAL_MODEL_PATH=/app/weights/final_rlm_lora
-      - HF_HOME=/root/.cache/huggingface
+      SFT_MODEL_PATH: /app/weights/qwen_gsm8k_sft_lora
+      FINAL_MODEL_PATH: /app/weights/qwen_gsm8k_grpo_lora
+      HF_HOME: /root/.cache/huggingface
     working_dir: /app
     command: ["python3", "-m", "src.rlm.train_grpo"]
 
-  agent-inference-adri:
-    container_name: agent-inference-adri
+  agent-inference:
     build:
       context: .
       dockerfile: Dockerfile
-    image: reasoning-tool-llm-agent
+    image: nas-rlm-app:latest
     ports:
-      - "8009:8000"
+      - "8010:8000"
     deploy:
       resources:
         reservations:
@@ -63,20 +60,19 @@ services:
       - .:/app
       - ./hf_cache:/root/.cache/huggingface
     environment:
-      - SFT_MODEL_PATH=/app/weights/sft_lora
-      - FINAL_MODEL_PATH=/app/weights/final_rlm_lora
-      - HF_HOME=/root/.cache/huggingface
+      SFT_MODEL_PATH: /app/weights/qwen_gsm8k_sft_lora
+      FINAL_MODEL_PATH: /app/weights/qwen_gsm8k_grpo_lora
+      HF_HOME: /root/.cache/huggingface
     working_dir: /app
     command: ["python3", "-m", "src.api.app"]
 
-  agent-bash-adri:
-    container_name: agent-bash-adri
+  agent-bash:
     build:
       context: .
       dockerfile: Dockerfile
-    image: reasoning-tool-llm-agent
-    stdin_open: true
-    tty: true
+    image: nas-rlm-app:latest
+    stdin_open: true  # for interactive bash
+    tty: true         # for interactive bash
     deploy:
       resources:
         reservations:
@@ -88,8 +84,8 @@ services:
       - .:/app
       - ./hf_cache:/root/.cache/huggingface
     environment:
-      - SFT_MODEL_PATH=/app/weights/sft_lora
-      - FINAL_MODEL_PATH=/app/weights/final_rlm_lora
-      - HF_HOME=/root/.cache/huggingface
+      SFT_MODEL_PATH: /app/weights/qwen_gsm8k_sft_lora
+      FINAL_MODEL_PATH: /app/weights/qwen_gsm8k_grpo_lora
+      HF_HOME: /root/.cache/huggingface
     working_dir: /app
     command: ["bash"]

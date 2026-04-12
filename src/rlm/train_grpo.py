@@ -9,14 +9,16 @@ import torch.nn.functional as F
 from datasets import load_dataset
 from peft import PeftModel
 from tqdm_loggable.auto import tqdm
-from transformers import AutoModelForCausalLM, AutoTokenizer
+from transformers import AutoModelForCausalLM, AutoTokenizer, AutoProcessor
 
 from src.system_prompt import TRAINING_SYSTEM_PROMPT
+# from src.rlm.utils import prepare_gemma4_tokenizer_repo
 
 logging.basicConfig(level=logging.INFO)
 
 # Configuration
 MODEL_NAME = "Qwen/Qwen2.5-7B-Instruct"
+# MODEL_NAME = "google/gemma-4-E2B-it"  # Does not work for this lab because PEFT is not compatible with Gemma4
 SFT_ADAPTER_PATH = os.environ.get("SFT_MODEL_PATH", "./weights/sft_lora")
 OUTPUT_DIR = os.environ.get("FINAL_MODEL_PATH", "./weights/final_rlm_lora")
 DATASET_NAME = "gsm8k"
@@ -61,36 +63,57 @@ def get_freest_gpu():
 os.environ["CUDA_VISIBLE_DEVICES"] = get_freest_gpu()
 print(f"Using GPU: {os.environ['CUDA_VISIBLE_DEVICES']}")
 
-# pre-compile re matcher
-answer_regex = re.compile(r"Response: (\d+(?:\.\d+)?)")
-think_first_regex = re.compile(r"<think>")
-think_last_regex = re.compile(r"</think>")
-think_content_regex = re.compile(r"<think>(.*)</think>", re.DOTALL)
+STRUCTURED_RESPONSE_REGEX = re.compile(
+    r"^\s*<think>\s*(?P<think>.*?)\s*</think>"
+    r"\s*<answer>\s*(?P<answer>.*?)\s*</answer>\s*$",
+    re.DOTALL,
+)
+NUMERIC_REGEX = re.compile(r"[-+]?\d[\d,]*(?:\.\d+)?")
+
+def parse_structured_response(generated_text: str):
+    match = STRUCTURED_RESPONSE_REGEX.fullmatch(generated_text)
+    if not match:
+        return None
+
+    return {
+        "think": match.group("think").strip(),
+        "answer": match.group("answer").strip(),
+    }
+
+def extract_numeric_answer(text: str):
+    if text is None:
+        return None
+
+    normalized = str(text)
+    if "####" in normalized:
+        normalized = normalized.split("####", 1)[1]
+
+    matches = NUMERIC_REGEX.findall(normalized)
+    if not matches:
+        return None
+
+    candidate = matches[-1].replace(",", "")
+    try:
+        return float(candidate)
+    except ValueError:
+        return None
 
 
 def reward_function(generated_text: str, ground_truth_answer) -> float:
-    """Extract the final answer from the generated text and compare to ground truth.
-
-    Reward is 0.7 if the final answer matches the ground truth, plus extra rewards for
-    including the "think" tags and content.
-    """
+    """Reward the exact SFT response schema and a correct final answer."""
     reward = 0.0
-    match = answer_regex.search(generated_text)
-    if match:
-        extracted = float(match.group(1))
-        try:
-            gt_value = float(ground_truth_answer)
-            if extracted == gt_value:
-                reward += 0.7
-        except (ValueError, TypeError):
-            reward += 0.0
 
-    if think_first_regex.search(generated_text):
-        reward += 0.1
-    if think_last_regex.search(generated_text):
-        reward += 0.1
-    if think_content_regex.search(generated_text):
-        reward += 0.1
+    parsed = parse_structured_response(generated_text)
+    if not parsed:
+        return reward
+
+    reward += 0.3
+
+    extracted_value = extract_numeric_answer(parsed["answer"])
+    gt_value = extract_numeric_answer(ground_truth_answer)
+    if extracted_value is not None and gt_value is not None:
+        if abs(extracted_value - gt_value) < 1e-9:
+            reward += 0.7
 
     return reward
 
@@ -109,9 +132,17 @@ def train_grpo():
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     # 1. Load model and tokenizer with LoRA adapter
-    base_model = AutoModelForCausalLM.from_pretrained(MODEL_NAME, dtype=torch.float16)
-    model = PeftModel.from_pretrained(base_model, SFT_ADAPTER_PATH, is_trainable=True)
+    use_bf16 = torch.cuda.is_available() and torch.cuda.is_bf16_supported()
+    # processor = AutoProcessor.from_pretrained(MODEL_NAME)
+    # tokenizer = processor.tokenizer
+
     tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME)
+    base_model = AutoModelForCausalLM.from_pretrained(
+        MODEL_NAME,
+        device_map={"": 0},
+        dtype=torch.bfloat16 if use_bf16 else torch.float16,
+    )
+    model = PeftModel.from_pretrained(base_model, SFT_ADAPTER_PATH, is_trainable=True)
 
     tokenizer.pad_token = tokenizer.eos_token
 
@@ -140,6 +171,7 @@ def train_grpo():
             all_generated_ids = []
             all_generated_texts = []
             all_ground_truths = []
+            all_prompt_lengths = []
 
             for ex in batch:
                 prompt = _build_prompt(ex["question"], tokenizer)
@@ -147,6 +179,7 @@ def train_grpo():
                 enc = tokenizer(prompt, return_tensors="pt", padding=False)
                 input_ids = enc.input_ids.to(device)
                 attention_mask = enc.attention_mask.to(device)
+                prompt_length = input_ids.shape[-1]
 
                 with torch.no_grad():
                     gen_ids = model.generate(
@@ -160,10 +193,12 @@ def train_grpo():
                         pad_token_id=tokenizer.eos_token_id,
                     )
 
-                # model.generate returns sequences with prompt + continuation; keep full ids
+                # model.generate returns sequences with prompt + continuation; keep only the completion
                 for g in gen_ids:
                     all_generated_ids.append(g.cpu())
-                    text = tokenizer.decode(g, skip_special_tokens=True)
+                    all_prompt_lengths.append(prompt_length)
+                    completion_ids = g[input_ids.shape[-1] :]
+                    text = tokenizer.decode(completion_ids, skip_special_tokens=True)
                     all_generated_texts.append(text)
                     all_ground_truths.append(ex["answer"])
 
@@ -178,7 +213,7 @@ def train_grpo():
             # 4. Compute log-probabilities under current model for each generated sequence
             # We'll compute per-sequence log_prob by summing token log-probs for the generated continuation
             log_probs = []
-            for gen_ids in all_generated_ids:
+            for gen_ids, prompt_length in zip(all_generated_ids, all_prompt_lengths):
                 # gen_ids is on cpu
                 gen_ids = gen_ids.to(device)
                 # prepare inputs and targets (predict next token)
@@ -197,8 +232,8 @@ def train_grpo():
 
                 # gather logprob of each target token
                 tgt_logprobs = logprobs.gather(2, target_ids.unsqueeze(-1)).squeeze(-1)
-                # sum over tokens -> sequence log_prob
-                seq_logprob = tgt_logprobs.sum()
+                # Sum only the generated continuation tokens, not the prompt tokens.
+                seq_logprob = tgt_logprobs[:, prompt_length - 1 :].sum()
                 log_probs.append(seq_logprob)
 
             log_probs = torch.stack(log_probs)  # (batch_size * group_size,)

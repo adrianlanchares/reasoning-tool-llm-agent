@@ -4,13 +4,15 @@ import subprocess
 import torch
 from datasets import load_dataset
 from peft import LoraConfig, TaskType
-from transformers import AutoModelForCausalLM, AutoTokenizer, TrainingArguments
+from transformers import AutoModelForCausalLM, AutoTokenizer, TrainingArguments, AutoProcessor
 from trl import SFTTrainer
 
 from src.system_prompt import TRAINING_SYSTEM_PROMPT
+from src.rlm.utils import prepare_gemma4_tokenizer_repo
 
 # Configuration
 MODEL_NAME: str = "Qwen/Qwen2.5-7B-Instruct"
+# MODEL_NAME: str = "google/gemma-4-E2B-it"
 DATASET_NAME: str = "gsm8k"
 OUTPUT_DIR: str = os.environ.get("SFT_MODEL_PATH", "./weights/sft_lora")
 
@@ -53,6 +55,10 @@ os.environ["CUDA_VISIBLE_DEVICES"] = get_freest_gpu()
 print(f"Using GPU: {os.environ['CUDA_VISIBLE_DEVICES']}")
 
 
+def format_assistant_output(reasoning: str, final_answer: str) -> str:
+    return f"<think>\n{reasoning}\n</think>\n<answer>\n{final_answer}\n</answer>"
+
+
 def formatting_prompts_func(example: dict, tokenizer: AutoTokenizer) -> str:
     question = example["question"]
     answer_full = example["answer"]
@@ -70,7 +76,7 @@ def formatting_prompts_func(example: dict, tokenizer: AutoTokenizer) -> str:
         {"role": "user", "content": question},
         {
             "role": "assistant",
-            "content": f"<think>\n{reasoning}\n</think>\n<answer>\n{final_answer}\n</answer>",
+            "content": format_assistant_output(reasoning, final_answer),
         },
     ]
     return tokenizer.apply_chat_template(
@@ -80,9 +86,15 @@ def formatting_prompts_func(example: dict, tokenizer: AutoTokenizer) -> str:
 
 def train():
     # 1. Load Model and Tokenizer
+    # bf16 is only supported on certain GPUs, so we check for that and fall back to fp16 if needed
+    use_bf16 = torch.cuda.is_available() and torch.cuda.is_bf16_supported()
     tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME)
+    # processor = AutoProcessor.from_pretrained(MODEL_NAME)
+    # tokenizer = processor.tokenizer
     model = AutoModelForCausalLM.from_pretrained(
-        MODEL_NAME, device_map={"": 0}, dtype=torch.bfloat16
+        MODEL_NAME,
+        device_map={"": 0},
+        dtype=torch.bfloat16 if use_bf16 else torch.float16,
     )
 
     # 2. Configure LoRA
@@ -105,7 +117,8 @@ def train():
         per_device_train_batch_size=BATCH_SIZE,
         gradient_accumulation_steps=2,
         learning_rate=LR,
-        fp16=True,
+        fp16=not use_bf16,
+        bf16=use_bf16,
         logging_steps=100,
     )
 

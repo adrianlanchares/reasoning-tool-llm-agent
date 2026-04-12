@@ -14,6 +14,10 @@ MAX_TOOL_TURNS: int = 3
 MAX_NEW_TOKENS: int = 1024
 
 
+def format_tool_result(tool_result: str) -> str:
+    return f"<tool_result>\n{tool_result}\n</tool_result>"
+
+
 def generate_with_tools(
     prompt: str,
     model: PreTrainedModel,
@@ -77,18 +81,19 @@ def generate_with_tools(
         # Execute the tool and record in trace
         tool_name, tool_args = parsed
         tool_result = execute_tool(tool_name, tool_args)
+        tool_result_tagged = format_tool_result(tool_result)
         trace.append(
             {
                 "role": "tool",
                 "tool_name": tool_name,
                 "tool_args": tool_args,
-                "content": tool_result,
+                "content": tool_result_tagged,
             }
         )
 
         # Append to conversation history for next generation turn
         messages.append({"role": "assistant", "content": generated_text})
-        messages.append({"role": "tool", "content": tool_result})
+        messages.append({"role": "tool", "content": tool_result_tagged})
 
     # Exhausted all turns without a direct final answer
     return {"response": generated_text, "trace": trace}

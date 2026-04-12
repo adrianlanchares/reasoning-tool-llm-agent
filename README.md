@@ -16,6 +16,17 @@ La práctica se divide en 4 fases acumulativas. Cada fase tiene su propio direct
 * **FASE 4 (`react`): Agente ReAct.**
   * Integrar todo en un bucle autónomo de Razonamiento-Acción-Observación.
 
+## Configuración RAG (Variables de Entorno)
+
+La fase RAG ahora admite configuración por entorno para rutas y embeddings:
+
+- `RAG_BASE_DIR`: carpeta base de datos RAG (por defecto: `rag_data`).
+- `RAG_DOCS_DIR`: carpeta con documentos fuente (por defecto: `<RAG_BASE_DIR>/documents`).
+- `RAG_VECTORSTORE_DIR`: carpeta del vectorstore Chroma (por defecto: `<RAG_BASE_DIR>/vectorstore`).
+- `RAG_EMBEDDING_MODEL`: modelo de embeddings (por defecto: `all-MiniLM-L6-v2`).
+
+Si no defines ninguna variable, se mantienen los valores por defecto.
+
 ## Evaluación
 
 La evaluación se realizará exponiendo la funcionalidad de cada fase a través de una API REST.

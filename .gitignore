@@ -9,3 +9,9 @@ weights_re_retrain/
 
 .DS_Store
 
+storage/
+data/
+
+# Random files
+Dockerfile.train
+requirements.train.txt

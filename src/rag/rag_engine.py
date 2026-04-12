@@ -1,10 +1,12 @@
 from langchain_community.vectorstores import Chroma
 from langchain_community.embeddings import SentenceTransformerEmbeddings
 
-DB_DIR = "rag_data/vectorstore"
-embeddings = SentenceTransformerEmbeddings(model_name="all-MiniLM-L6-v2")
+from src.rag.config import DB_DIR, EMBEDDING_MODEL
+
+
+embeddings = SentenceTransformerEmbeddings(model_name=EMBEDDING_MODEL)
 # Cargar la BD existente
-vectordb = Chroma(persist_directory=DB_DIR, embedding_function=embeddings)
+vectordb = Chroma(persist_directory=str(DB_DIR), embedding_function=embeddings)
 
 def retrieve_context(query, k=3, metadata_filter=None):
     """
