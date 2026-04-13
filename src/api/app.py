@@ -82,6 +82,7 @@ async def startup_event():
 # --- Modelos de Pydantic para Request/Response ---
 class QueryRequest(BaseModel):
     prompt: str
+    context: list[dict] = None
 
 
 class GenericResponse(BaseModel):
@@ -213,6 +214,17 @@ async def phase4_endpoint(request: QueryRequest):
 
     return result
 
+
+@app.post("/chat", tags=["Chat"])
+async def chat_endpoint(request: QueryRequest):
+    if not AGENT:
+        return {"final_answer": "ERROR: Agente no inicializado.", "trace": []}
+    
+    print(request)
+
+    result = AGENT.run(request.prompt, context=request.context)
+
+    return result
 
 if __name__ == "__main__":
     # Para correr localmente: python api/app.py

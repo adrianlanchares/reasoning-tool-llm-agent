@@ -1,7 +1,8 @@
-import torch
+import re
 import json
 from typing import Any
-import re
+
+import torch
 
 from src.system_prompt import SYSTEM_PROMPT, HYDE_SYSTEM_PROMPT
 from src.tool_use.tools import TOOL_SCHEMAS
@@ -112,16 +113,18 @@ class ReActAgent:
         *,
         do_sample=True,
         temperature=0.3,
+        context: list[dict]=None,
     ):
         """
         Ejecuta el bucle ReAct para resolver la query.
         """
         history = [
             {"role": "system", "content": SYSTEM_PROMPT},
+            *(context or []),
             {"role": "user", "content": user_query},
         ]
 
-        trace = []  # Para guardar los pasos dados y mostrarlos en la API
+        trace = history[1:]  # Para guardar los pasos dados y mostrarlos en la API
         generated_text = ""
 
         try:
