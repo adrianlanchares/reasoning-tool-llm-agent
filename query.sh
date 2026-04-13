@@ -27,7 +27,7 @@ fi
 PROMPT="$1"
 
 case "$ENDPOINT_TYPE" in
-  local) BASE_URL="http://localhost:8009" ;;
+  local) BASE_URL="http://localhost:8010" ;;
   ngrok) BASE_URL="https://affine-nonastronomically-evelynn.ngrok-free.dev" ;;
   *)
     echo "Invalid endpoint type: $ENDPOINT_TYPE. Must be 'local' or 'ngrok'."

@@ -3,7 +3,7 @@ import json
 from typing import Any
 import re
 
-from src.system_prompt import SYSTEM_PROMPT
+from src.system_prompt import SYSTEM_PROMPT, HYDE_SYSTEM_PROMPT
 from src.tool_use.tools import TOOL_SCHEMAS
 from src.tool_use.tool_handler import execute_tool, parse_tool_call
 
@@ -26,11 +26,9 @@ def _contains_tool_call_tags(text: str) -> bool:
 
 
 class ReActAgent:
-    def __init__(self, model, tokenizer, *, system_prompt: str = SYSTEM_PROMPT, tools_prompt=None):
+    def __init__(self, model, tokenizer):
         self.model = model
         self.tokenizer = tokenizer
-        self.tools_prompt = tools_prompt if tools_prompt is not None else TOOL_SCHEMAS
-        self.system_prompt = system_prompt
 
     def _generate_assistant(
         self,
@@ -44,7 +42,7 @@ class ReActAgent:
 
         input_text = self.tokenizer.apply_chat_template(
             history,
-            tools=self.tools_prompt,
+            tools=TOOL_SCHEMAS,
             add_generation_prompt=True,
             tokenize=False,
         )
@@ -66,6 +64,46 @@ class ReActAgent:
 
         return self.tokenizer.decode(output_ids[0][input_len:], skip_special_tokens=True)
 
+
+    def _generate_hypothetical_document(
+        self,
+        user_query: str,
+        *,
+        max_new_tokens: int = 192,
+        do_sample: bool = True,
+        temperature: float = 0.3,
+    ) -> str:
+        device = next(self.model.parameters()).device
+
+        hyde_history = [
+            {"role": "system", "content": HYDE_SYSTEM_PROMPT},
+            {"role": "user", "content": user_query},
+        ]
+
+        input_text = self.tokenizer.apply_chat_template(
+            hyde_history,
+            add_generation_prompt=True,
+            tokenize=False,
+        )
+
+        inputs = self.tokenizer(input_text, return_tensors="pt")
+        inputs = {k: v.to(device) for k, v in inputs.items()}
+        input_len = inputs["input_ids"].shape[-1]
+
+        generate_kwargs: dict[str, Any] = {
+            "max_new_tokens": max_new_tokens,
+            "do_sample": do_sample,
+            "pad_token_id": self.tokenizer.eos_token_id,
+        }
+        if do_sample:
+            generate_kwargs["temperature"] = temperature
+
+        with torch.no_grad():
+            output_ids = self.model.generate(**inputs, **generate_kwargs)
+
+        return self.tokenizer.decode(output_ids[0][input_len:], skip_special_tokens=True)
+
+
     def run(
         self,
         user_query,
@@ -79,7 +117,7 @@ class ReActAgent:
         Ejecuta el bucle ReAct para resolver la query.
         """
         history = [
-            {"role": "system", "content": self.system_prompt},
+            {"role": "system", "content": SYSTEM_PROMPT},
             {"role": "user", "content": user_query},
         ]
 
@@ -100,6 +138,7 @@ class ReActAgent:
                 temperature=temperature,
             )
             trace.append({"role": "assistant", "content": generated_text})
+            history.append({"role": "assistant", "content": generated_text})
             
             # ======= Check for answer tags first
             final_answer = parse_final_answer(generated_text)
@@ -108,50 +147,36 @@ class ReActAgent:
 
             # ======= Check for tool call in the generated text
             parsed = parse_tool_call(generated_text)
-            if parsed is None:
-                if _contains_tool_call_tags(generated_text):
-                    parser_error_payload = {
-                        "status": "error",
-                        "tool_name": "tool_parser",
-                        "message": (
-                            "Malformed or unsupported <tool_call> payload. "
-                            "Use valid JSON with a known tool name and object arguments."
-                        ),
+            if parsed is not None:
+                # Execute the tool and record in trace
+                tool_name, tool_args = parsed
+
+                if tool_name == "rag_retrieve_context":
+                    # For RAG retrieval, we first generate a hypothetical document to use as context
+                    user_query_for_hyde = tool_args.get("query", "")
+                    hyde_doc = self._generate_hypothetical_document(
+                        user_query_for_hyde,
+                        max_new_tokens=192,
+                        do_sample=True,
+                        temperature=0.3,
+                    )
+                    tool_args["query"] = user_query_for_hyde + "\n\n" + hyde_doc
+
+                tool_result = execute_tool(tool_name, tool_args)
+                tool_result_tagged = format_tool_result(tool_result)
+                trace.append(
+                    {
+                        "role": "tool",
+                        "tool_name": tool_name,
+                        "tool_args": tool_args,
+                        "content": tool_result_tagged,
                     }
-                    parser_error_tagged = format_tool_result(
-                        json.dumps(parser_error_payload, ensure_ascii=False)
-                    )
+                )
 
-                    trace.append(
-                        {
-                            "role": "tool",
-                            "tool_name": "tool_parser",
-                            "tool_args": {},
-                            "content": parser_error_tagged,
-                        }
-                    )
-                    history.append({"role": "assistant", "content": generated_text})
-                    history.append({"role": "tool", "content": parser_error_tagged})
-                    continue
+                # Append to conversation history for next generation turn
+                history.append({"role": "tool", "content": tool_result_tagged})
 
-                # No tool call — this is the final answer
-                return {"response": generated_text, "trace": trace}
-
-            # Execute the tool and record in trace
-            tool_name, tool_args = parsed
-            tool_result = execute_tool(tool_name, tool_args)
-            tool_result_tagged = format_tool_result(tool_result)
-            trace.append(
-                {
-                    "role": "tool",
-                    "tool_name": tool_name,
-                    "tool_args": tool_args,
-                    "content": tool_result_tagged,
-                }
-            )
-
-            # Append to conversation history for next generation turn
-            history.append({"role": "assistant", "content": generated_text})
-            history.append({"role": "tool", "content": tool_result_tagged})
-
-        return {"response": generated_text, "trace": trace}
+        return {
+            "response": f"{generated_text}\n\n(Reached max steps without finding a final answer.)",
+            "trace": trace
+        }

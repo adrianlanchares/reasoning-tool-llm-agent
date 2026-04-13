@@ -78,3 +78,15 @@ Rules:
 - Do not write any text outside these tags.
 - The content inside <answer> should be concise and contain only the final answer.
 """
+
+HYDE_SYSTEM_PROMPT = """You are helping a medical retrieval system.
+Write a short medical reference-style passage that is likely to contain terminology,
+concepts, and phrases relevant to answering the user's question.
+
+Rules:
+- Be concise and factual in tone.
+- Include likely related medical terms and synonyms.
+- Do not write as a chatbot.
+- Do not mention uncertainty or that this is hypothetical.
+- Output only the passage.
+"""
