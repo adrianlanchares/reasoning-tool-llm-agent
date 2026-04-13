@@ -1,11 +1,21 @@
 import torch
 import json
 from typing import Any
+import re
 
 from src.system_prompt import SYSTEM_PROMPT
 from src.tool_use.tools import TOOL_SCHEMAS
 from src.tool_use.tool_handler import execute_tool, parse_tool_call
 
+
+_ANSWER_PATTERN = re.compile(r"<answer>\s*(.*?)\s*</answer>", re.DOTALL)
+
+
+def parse_final_answer(text: str) -> str | None:
+    match = _ANSWER_PATTERN.search(text)
+    if not match:
+        return None
+    return match.group(1).strip()
 
 def format_tool_result(tool_result: str) -> str:
     return f"<tool_result>\n{tool_result}\n</tool_result>"
@@ -90,8 +100,13 @@ class ReActAgent:
                 temperature=temperature,
             )
             trace.append({"role": "assistant", "content": generated_text})
+            
+            # ======= Check for answer tags first
+            final_answer = parse_final_answer(generated_text)
+            if final_answer is not None:
+                return {"response": final_answer, "trace": trace}
 
-            # Check for tool call in the generated text
+            # ======= Check for tool call in the generated text
             parsed = parse_tool_call(generated_text)
             if parsed is None:
                 if _contains_tool_call_tags(generated_text):
