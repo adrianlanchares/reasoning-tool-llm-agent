@@ -78,7 +78,9 @@ def calculate_creatinine_cockcroft(
 
     sex_lower = str(sex).strip().lower()
     if sex_lower not in ("male", "female"):
-        return _raw_error(tool_name, f"Invalid sex '{sex}'. Must be 'male' or 'female'.")
+        return _raw_error(
+            tool_name, f"Invalid sex '{sex}'. Must be 'male' or 'female'."
+        )
 
     try:
         age_i, weight_f, scr_f = int(age), float(weight_kg), float(scr)
@@ -99,7 +101,7 @@ def calculate_creatinine_cockcroft(
         {
             "creatinine_clearance_ml_min": round(crcl, 2),
             "unit": "mL/min",
-        }
+        },
     )
 
 
@@ -183,15 +185,14 @@ def fda_drug_search(drug_name: str) -> dict[str, Any]:
                 "indications_and_usage": _first("indications_and_usage"),
                 "warnings": _first("warnings"),
                 "dosage_and_administration": _first("dosage_and_administration"),
-            }
+            },
         )
 
     if last_request_error is not None:
         return _raw_error(tool_name, last_request_error)
 
     return _raw_not_found(
-        tool_name,
-        f"No FDA results found for '{query}' by brand or generic name."
+        tool_name, f"No FDA results found for '{query}' by brand or generic name."
     )
 
 
@@ -233,7 +234,9 @@ def rag_retrieve_context(
             k=k_int,
             metadata_filter=metadata_filter,
         )
-    except Exception as exc:  # pragma: no cover - defensive wrapper around external deps
+    except (
+        Exception
+    ) as exc:  # pragma: no cover - defensive wrapper around external deps
         return _raw_error(tool_name, f"RAG retrieval failed: {exc}")
 
     if not documents:
@@ -246,7 +249,7 @@ def rag_retrieve_context(
             "k": k_int,
             "count": len(documents),
             "documents": documents,
-        }
+        },
     )
 
 

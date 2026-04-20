@@ -1,13 +1,11 @@
 import re
-import json
 from typing import Any
 
 import torch
 
-from src.system_prompt import SYSTEM_PROMPT, HYDE_SYSTEM_PROMPT
-from src.tool_use.tools import TOOL_SCHEMAS
+from src.system_prompt import HYDE_SYSTEM_PROMPT, SYSTEM_PROMPT
 from src.tool_use.tool_handler import execute_tool, parse_tool_call
-
+from src.tool_use.tools import TOOL_SCHEMAS
 
 _ANSWER_PATTERN = re.compile(r"<answer>\s*(.*?)\s*</answer>", re.DOTALL)
 
@@ -17,6 +15,7 @@ def parse_final_answer(text: str) -> str | None:
     if not match:
         return None
     return match.group(1).strip()
+
 
 def format_tool_result(tool_result: str) -> str:
     return f"<tool_result>\n{tool_result}\n</tool_result>"
@@ -63,8 +62,9 @@ class ReActAgent:
         with torch.no_grad():
             output_ids = self.model.generate(**inputs, **generate_kwargs)
 
-        return self.tokenizer.decode(output_ids[0][input_len:], skip_special_tokens=True)
-
+        return self.tokenizer.decode(
+            output_ids[0][input_len:], skip_special_tokens=True
+        )
 
     def _generate_hypothetical_document(
         self,
@@ -102,8 +102,9 @@ class ReActAgent:
         with torch.no_grad():
             output_ids = self.model.generate(**inputs, **generate_kwargs)
 
-        return self.tokenizer.decode(output_ids[0][input_len:], skip_special_tokens=True)
-
+        return self.tokenizer.decode(
+            output_ids[0][input_len:], skip_special_tokens=True
+        )
 
     def run(
         self,
@@ -113,7 +114,7 @@ class ReActAgent:
         *,
         do_sample=True,
         temperature=0.3,
-        context: list[dict]=None,
+        context: list[dict] = None,
     ):
         """
         Ejecuta el bucle ReAct para resolver la query.
@@ -142,7 +143,7 @@ class ReActAgent:
             )
             trace.append({"role": "assistant", "content": generated_text})
             history.append({"role": "assistant", "content": generated_text})
-            
+
             # ======= Check for answer tags first
             final_answer = parse_final_answer(generated_text)
             if final_answer is not None:
@@ -181,5 +182,5 @@ class ReActAgent:
 
         return {
             "response": f"{generated_text}\n\n(Reached max steps without finding a final answer.)",
-            "trace": trace
+            "trace": trace,
         }

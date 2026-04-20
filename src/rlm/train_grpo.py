@@ -9,10 +9,9 @@ import torch.nn.functional as F
 from datasets import load_dataset
 from peft import PeftModel
 from tqdm_loggable.auto import tqdm
-from transformers import AutoModelForCausalLM, AutoTokenizer, AutoProcessor
+from transformers import AutoModelForCausalLM, AutoTokenizer
 
 from src.system_prompt import TRAINING_SYSTEM_PROMPT
-# from src.rlm.utils import prepare_gemma4_tokenizer_repo
 
 logging.basicConfig(level=logging.INFO)
 
@@ -70,6 +69,7 @@ STRUCTURED_RESPONSE_REGEX = re.compile(
 )
 NUMERIC_REGEX = re.compile(r"[-+]?\d[\d,]*(?:\.\d+)?")
 
+
 def parse_structured_response(generated_text: str):
     match = STRUCTURED_RESPONSE_REGEX.fullmatch(generated_text)
     if not match:
@@ -79,6 +79,7 @@ def parse_structured_response(generated_text: str):
         "think": match.group("think").strip(),
         "answer": match.group("answer").strip(),
     }
+
 
 def extract_numeric_answer(text: str):
     if text is None:

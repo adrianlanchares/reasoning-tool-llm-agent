@@ -4,11 +4,10 @@ import subprocess
 import torch
 from datasets import load_dataset
 from peft import LoraConfig, TaskType
-from transformers import AutoModelForCausalLM, AutoTokenizer, TrainingArguments, AutoProcessor
+from transformers import AutoModelForCausalLM, AutoTokenizer, TrainingArguments
 from trl import SFTTrainer
 
 from src.system_prompt import TRAINING_SYSTEM_PROMPT
-from src.rlm.utils import prepare_gemma4_tokenizer_repo
 
 # Configuration
 MODEL_NAME: str = "Qwen/Qwen2.5-7B-Instruct"
