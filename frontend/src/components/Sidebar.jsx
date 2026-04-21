@@ -24,16 +24,30 @@ export default function Sidebar({
 
   return (
     <aside style={styles.sidebar}>
+      {/* Header with medical cross logo */}
       <div style={styles.header}>
-        <span style={styles.logo}>
-          <span style={styles.logoAccent}>⬡</span> AGENT
-        </span>
+        <div style={styles.logoWrap}>
+          <div style={styles.logoIcon}>
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <rect x="8" y="2" width="4" height="16" rx="1.5" fill="#1a6fc4"/>
+              <rect x="2" y="8" width="16" height="4" rx="1.5" fill="#1a6fc4"/>
+            </svg>
+          </div>
+          <div>
+            <div style={styles.logoName}>MedAgent</div>
+            <div style={styles.logoSub}>Clinical AI Assistant</div>
+          </div>
+        </div>
       </div>
+
+      <div style={styles.divider} />
 
       <button style={styles.newBtn} onClick={onCreate}>
         <span style={styles.newBtnPlus}>+</span>
-        New conversation
+        New Consultation
       </button>
+
+      <div style={styles.navLabel}>Recent Sessions</div>
 
       <nav style={styles.nav}>
         {conversations.map((conv) => {
@@ -53,6 +67,7 @@ export default function Sidebar({
               onMouseLeave={() => setHoveredId(null)}
               onClick={() => !isEditing && onSelect(conv.id)}
             >
+              <span style={styles.convDot} />
               {isEditing ? (
                 <input
                   autoFocus
@@ -72,11 +87,7 @@ export default function Sidebar({
 
               {(isHovered || isActive) && !isEditing && (
                 <div style={styles.convActions} onClick={(e) => e.stopPropagation()}>
-                  <button
-                    style={styles.actionBtn}
-                    title="Rename"
-                    onClick={() => startEdit(conv)}
-                  >
+                  <button style={styles.actionBtn} title="Rename" onClick={() => startEdit(conv)}>
                     ✎
                   </button>
                   <button
@@ -94,7 +105,11 @@ export default function Sidebar({
       </nav>
 
       <div style={styles.footer}>
-        <span style={styles.footerText}>reasoning-tool-llm-agent</span>
+        <div style={styles.footerBadge}>
+          <span style={styles.footerDot} />
+          System Active
+        </div>
+        <div style={styles.footerVersion}>reasoning-tool-llm-agent v1</div>
       </div>
     </aside>
   )
@@ -112,67 +127,105 @@ const styles = {
     overflow: 'hidden',
   },
   header: {
-    padding: '20px 16px 16px',
-    borderBottom: '1px solid var(--border)',
+    padding: '20px 18px 18px',
   },
-  logo: {
-    fontFamily: 'var(--font-mono)',
-    fontSize: '13px',
+  logoWrap: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '12px',
+  },
+  logoIcon: {
+    width: '38px',
+    height: '38px',
+    background: 'var(--accent-light)',
+    borderRadius: '10px',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexShrink: 0,
+  },
+  logoName: {
+    fontFamily: 'var(--font-serif)',
+    fontSize: '17px',
     fontWeight: 600,
-    letterSpacing: '0.1em',
     color: 'var(--text-primary)',
+    lineHeight: 1.2,
   },
-  logoAccent: {
-    color: 'var(--accent)',
+  logoSub: {
+    fontSize: '11px',
+    color: 'var(--text-muted)',
+    letterSpacing: '0.02em',
+    marginTop: '1px',
+  },
+  divider: {
+    height: '1px',
+    background: 'var(--border)',
+    margin: '0 0 12px 0',
   },
   newBtn: {
     display: 'flex',
     alignItems: 'center',
     gap: '8px',
-    margin: '12px 10px',
-    padding: '8px 12px',
-    border: '1px solid var(--border-bright)',
-    borderRadius: '4px',
-    background: 'transparent',
-    color: 'var(--text-secondary)',
-    fontSize: '12px',
-    letterSpacing: '0.02em',
+    margin: '0 12px 16px',
+    padding: '9px 14px',
+    border: '1px solid var(--accent)',
+    borderRadius: 'var(--radius)',
+    background: 'var(--accent-light)',
+    color: 'var(--accent)',
+    fontSize: '13px',
+    fontWeight: 500,
     transition: 'all 0.15s',
     cursor: 'pointer',
-    width: 'calc(100% - 20px)',
+    width: 'calc(100% - 24px)',
   },
   newBtnPlus: {
-    fontSize: '16px',
+    fontSize: '18px',
     lineHeight: 1,
-    color: 'var(--accent)',
+    fontWeight: 300,
+  },
+  navLabel: {
+    fontSize: '10px',
+    fontWeight: 600,
+    letterSpacing: '0.08em',
+    textTransform: 'uppercase',
+    color: 'var(--text-muted)',
+    padding: '0 18px 8px',
   },
   nav: {
     flex: 1,
     overflowY: 'auto',
-    padding: '4px 8px',
+    padding: '0 8px',
   },
   convItem: {
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'space-between',
     padding: '8px 10px',
-    borderRadius: '4px',
+    borderRadius: 'var(--radius-sm)',
     cursor: 'pointer',
     transition: 'background 0.1s',
-    minHeight: '34px',
-    gap: '6px',
+    minHeight: '36px',
+    gap: '8px',
+    marginBottom: '2px',
   },
   convItemActive: {
-    background: 'var(--bg-active)',
-    borderLeft: '2px solid var(--accent)',
-    paddingLeft: '8px',
+    background: 'var(--accent-light)',
+    borderLeft: '3px solid var(--accent)',
+    paddingLeft: '7px',
   },
   convItemHover: {
     background: 'var(--bg-hover)',
   },
+  convDot: {
+    width: '6px',
+    height: '6px',
+    borderRadius: '50%',
+    background: 'var(--border-bright)',
+    flexShrink: 0,
+  },
   convTitle: {
     flex: 1,
-    fontSize: '12px',
+    fontSize: '13px',
     color: 'var(--text-secondary)',
     whiteSpace: 'nowrap',
     overflow: 'hidden',
@@ -193,12 +246,14 @@ const styles = {
   },
   deleteBtn: {
     fontSize: '16px',
+    color: 'var(--error)',
+    opacity: 0.6,
   },
   editInput: {
     flex: 1,
     background: 'var(--bg)',
     border: '1px solid var(--accent)',
-    borderRadius: '3px',
+    borderRadius: 'var(--radius-sm)',
     padding: '2px 6px',
     fontSize: '12px',
     color: 'var(--text-primary)',
@@ -206,13 +261,31 @@ const styles = {
     width: '100%',
   },
   footer: {
-    padding: '12px 16px',
+    padding: '14px 18px',
     borderTop: '1px solid var(--border)',
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '4px',
   },
-  footerText: {
+  footerBadge: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '6px',
+    fontSize: '11px',
+    color: 'var(--success)',
+    fontWeight: 500,
+  },
+  footerDot: {
+    width: '7px',
+    height: '7px',
+    borderRadius: '50%',
+    background: 'var(--success)',
+    flexShrink: 0,
+  },
+  footerVersion: {
     fontFamily: 'var(--font-mono)',
     fontSize: '10px',
     color: 'var(--text-muted)',
-    letterSpacing: '0.04em',
+    letterSpacing: '0.03em',
   },
 }

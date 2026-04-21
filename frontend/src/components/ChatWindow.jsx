@@ -3,9 +3,10 @@ import MessageBubble from './MessageBubble.jsx'
 import ChatInput from './ChatInput.jsx'
 
 const EMPTY_SVG = (
-  <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <rect x="0.5" y="0.5" width="39" height="39" rx="3.5" stroke="#2a2a2a"/>
-    <path d="M10 20h20M20 10v20" stroke="#3d3d3d" strokeWidth="1.5" strokeLinecap="round"/>
+  <svg width="52" height="52" viewBox="0 0 52 52" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <rect width="52" height="52" rx="14" fill="#e8f1fb"/>
+    <rect x="23" y="12" width="6" height="28" rx="2.5" fill="#1a6fc4" opacity="0.7"/>
+    <rect x="12" y="23" width="28" height="6" rx="2.5" fill="#1a6fc4" opacity="0.7"/>
   </svg>
 )
 
@@ -30,7 +31,12 @@ export default function ChatWindow({
     <div style={styles.wrapper}>
       {/* Top bar */}
       <div style={styles.topbar}>
-        <span style={styles.topbarTitle}>{conversation.title}</span>
+        <div style={styles.topbarLeft}>
+          <div style={styles.topbarTitle}>{conversation.title}</div>
+          <div style={styles.topbarMeta}>
+            {conversation.messages.filter((m) => m.role === 'user').length} messages in session
+          </div>
+        </div>
 
         <div style={styles.topbarRight}>
           <label style={styles.toggleLabel}>
@@ -39,12 +45,8 @@ export default function ChatWindow({
               checked={brainrotMode}
               onChange={onToggleBrainrotMode}
             />
-            Brainrot Mode
+            Extended view
           </label>
-
-          <span style={styles.topbarCount}>
-            {conversation.messages.filter((m) => m.role === 'user').length} messages
-          </span>
         </div>
       </div>
 
@@ -53,10 +55,15 @@ export default function ChatWindow({
         {isEmpty ? (
           <div style={styles.empty}>
             <div style={styles.emptyIcon}>{EMPTY_SVG}</div>
-            <p style={styles.emptyTitle}>Start a conversation</p>
+            <p style={styles.emptyTitle}>Begin a clinical consultation</p>
             <p style={styles.emptyHint}>
-              Send a message to interact with the ReAct reasoning agent.
+              Ask a medical question, describe symptoms, or request evidence-based guidance from the AI agent.
             </p>
+            <div style={styles.emptyTags}>
+              <span style={styles.tag}>Diagnosis support</span>
+              <span style={styles.tag}>Drug interactions</span>
+              <span style={styles.tag}>Clinical guidelines</span>
+            </div>
           </div>
         ) : (
           <>
@@ -69,9 +76,9 @@ export default function ChatWindow({
       </div>
 
       {/* Input */}
-      <ChatInput 
-        onSend={onSend} 
-        disabled={isLoading} 
+      <ChatInput
+        onSend={onSend}
+        disabled={isLoading}
         selectedModel={selectedModel}
         onSelectModel={onSelectModel}
       />
@@ -92,28 +99,30 @@ const styles = {
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'space-between',
-    padding: '14px 24px',
+    padding: '14px 28px',
     borderBottom: '1px solid var(--border)',
     background: 'var(--bg-panel)',
     flexShrink: 0,
   },
+  topbarLeft: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '2px',
+  },
   topbarTitle: {
-    fontFamily: 'var(--font-mono)',
-    fontSize: '12px',
-    color: 'var(--text-secondary)',
-    fontWeight: 500,
-    letterSpacing: '0.03em',
-    maxWidth: '600px',
+    fontFamily: 'var(--font-serif)',
+    fontSize: '15px',
+    fontWeight: 600,
+    color: 'var(--text-primary)',
+    maxWidth: '500px',
     overflow: 'hidden',
     textOverflow: 'ellipsis',
     whiteSpace: 'nowrap',
   },
-  topbarCount: {
-    fontFamily: 'var(--font-mono)',
-    fontSize: '10px',
+  topbarMeta: {
+    fontSize: '11px',
     color: 'var(--text-muted)',
-    letterSpacing: '0.05em',
-    flexShrink: 0,
+    letterSpacing: '0.01em',
   },
   topbarRight: {
     display: 'flex',
@@ -121,21 +130,19 @@ const styles = {
     gap: '16px',
     flexShrink: 0,
   },
-
   toggleLabel: {
     display: 'flex',
     alignItems: 'center',
     gap: '6px',
-    fontFamily: 'var(--font-mono)',
-    fontSize: '11px',
-    color: 'var(--text-secondary)',
-    letterSpacing: '0.03em',
+    fontSize: '12px',
+    color: 'var(--text-muted)',
     userSelect: 'none',
+    cursor: 'pointer',
   },
   messages: {
     flex: 1,
     overflowY: 'auto',
-    padding: '24px',
+    padding: '28px 32px',
     display: 'flex',
     flexDirection: 'column',
     gap: '20px',
@@ -146,23 +153,40 @@ const styles = {
     flexDirection: 'column',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: '12px',
-    marginTop: '80px',
+    gap: '14px',
+    marginTop: '60px',
   },
   emptyIcon: {
-    opacity: 0.6,
+    marginBottom: '4px',
   },
   emptyTitle: {
-    fontFamily: 'var(--font-mono)',
-    fontSize: '13px',
-    color: 'var(--text-muted)',
-    letterSpacing: '0.05em',
+    fontFamily: 'var(--font-serif)',
+    fontSize: '20px',
+    fontWeight: 600,
+    color: 'var(--text-primary)',
+    letterSpacing: '-0.01em',
   },
   emptyHint: {
-    fontSize: '13px',
+    fontSize: '14px',
     color: 'var(--text-muted)',
     textAlign: 'center',
-    maxWidth: '320px',
-    lineHeight: 1.6,
+    maxWidth: '380px',
+    lineHeight: 1.65,
+  },
+  emptyTags: {
+    display: 'flex',
+    gap: '8px',
+    marginTop: '4px',
+    flexWrap: 'wrap',
+    justifyContent: 'center',
+  },
+  tag: {
+    padding: '5px 12px',
+    borderRadius: '20px',
+    border: '1px solid var(--border)',
+    fontSize: '12px',
+    color: 'var(--text-secondary)',
+    background: 'var(--bg-panel)',
+    fontWeight: 500,
   },
 }

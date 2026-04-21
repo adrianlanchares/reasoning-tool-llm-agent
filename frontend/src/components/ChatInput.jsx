@@ -3,7 +3,6 @@ import React, { useRef, useEffect } from 'react'
 export default function ChatInput({ onSend, disabled, selectedModel, onSelectModel }) {
   const textareaRef = useRef(null)
 
-  // Auto-grow textarea
   function handleInput(e) {
     const el = e.target
     el.style.height = 'auto'
@@ -39,16 +38,18 @@ export default function ChatInput({ onSend, disabled, selectedModel, onSelectMod
           style={styles.modelSelect}
           title="Select model"
         >
-          <option value="full">full</option>
-          <option value="reason-only">reason-only</option>
-          <option value="tool-only">tool-only</option>
-          <option value="rag-only">rag-only</option>
+          <option value="full">Full Agent</option>
+          <option value="reason-only">Reasoning Only</option>
+          <option value="tool-only">Tool Only</option>
+          <option value="rag-only">RAG Only</option>
         </select>
+
+        <div style={styles.inputDivider} />
 
         <textarea
           ref={textareaRef}
           style={styles.textarea}
-          placeholder="Send a message… (Enter to send, Shift+Enter for newline)"
+          placeholder="Describe the clinical question or patient presentation…"
           rows={1}
           onInput={handleInput}
           onKeyDown={handleKeyDown}
@@ -61,48 +62,73 @@ export default function ChatInput({ onSend, disabled, selectedModel, onSelectMod
           disabled={disabled}
           title="Send"
         >
-          ▶
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M14 8L2 2L5 8L2 14L14 8Z" fill="currentColor"/>
+          </svg>
         </button>
       </div>
+
       <p style={styles.hint}>
         {disabled ? (
-          <span style={{ color: 'var(--accent)' }}>agent is thinking…</span>
+          <span style={styles.hintActive}>
+            <span style={styles.hintPulse} />
+            Agent is processing your query…
+          </span>
         ) : (
-          <span>Enter ↵ to send · Shift+Enter for newline</span>
+          <span>Press Enter to send · Shift + Enter for new line</span>
         )}
       </p>
+
+      <style>{`
+        @keyframes pulse {
+          0%, 100% { opacity: 1; }
+          50% { opacity: 0.3; }
+        }
+      `}</style>
     </div>
   )
 }
 
 const styles = {
   wrapper: {
-    padding: '12px 24px 16px',
+    padding: '14px 28px 18px',
     borderTop: '1px solid var(--border)',
-    background: 'var(--bg)',
+    background: 'var(--bg-panel)',
   },
   inner: {
     display: 'flex',
-    gap: '10px',
+    gap: '0',
     alignItems: 'flex-end',
-    background: 'var(--bg-panel)',
-    border: '1px solid var(--border-bright)',
-    borderRadius: '6px',
-    padding: '8px 12px',
-    transition: 'border-color 0.15s',
+    background: 'var(--bg)',
+    border: '1.5px solid var(--border)',
+    borderRadius: 'var(--radius)',
+    padding: '8px 10px 8px 14px',
+    transition: 'border-color 0.15s, box-shadow 0.15s',
+    boxShadow: '0 1px 3px rgba(26,111,196,0.04)',
   },
   modelSelect: {
     flexShrink: 0,
     alignSelf: 'flex-end',
     height: '32px',
-    padding: '0 10px',
-    borderRadius: '4px',
-    border: '1px solid var(--border)',
-    background: 'var(--bg)',
-    color: 'var(--text-primary)',
+    padding: '0 8px',
+    borderRadius: 'var(--radius-sm)',
+    border: 'none',
+    background: 'transparent',
+    color: 'var(--text-secondary)',
     fontSize: '12px',
-    fontFamily: 'var(--font-mono)',
+    fontWeight: 500,
     outline: 'none',
+    cursor: 'pointer',
+  },
+  inputDivider: {
+    width: '1px',
+    height: '20px',
+    background: 'var(--border)',
+    alignSelf: 'flex-end',
+    marginBottom: '6px',
+    marginLeft: '6px',
+    marginRight: '10px',
+    flexShrink: 0,
   },
   textarea: {
     flex: 1,
@@ -118,30 +144,44 @@ const styles = {
     fontFamily: 'var(--font-sans)',
   },
   sendBtn: {
-    padding: '4px 8px',
+    padding: '7px 10px',
     background: 'var(--accent)',
-    color: '#0d0d0d',
+    color: '#ffffff',
     border: 'none',
-    borderRadius: '3px',
+    borderRadius: 'var(--radius-sm)',
     fontSize: '12px',
     fontWeight: 700,
     cursor: 'pointer',
     flexShrink: 0,
     alignSelf: 'flex-end',
-    marginBottom: '1px',
-    transition: 'opacity 0.15s',
-    fontFamily: 'var(--font-mono)',
+    transition: 'opacity 0.15s, background 0.15s',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   sendBtnDisabled: {
-    opacity: 0.3,
+    opacity: 0.35,
     cursor: 'not-allowed',
   },
   hint: {
-    marginTop: '6px',
+    marginTop: '7px',
     fontSize: '11px',
-    fontFamily: 'var(--font-mono)',
     color: 'var(--text-muted)',
-    letterSpacing: '0.02em',
     paddingLeft: '2px',
+  },
+  hintActive: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: '7px',
+    color: 'var(--accent)',
+    fontWeight: 500,
+  },
+  hintPulse: {
+    display: 'inline-block',
+    width: '7px',
+    height: '7px',
+    borderRadius: '50%',
+    background: 'var(--accent)',
+    animation: 'pulse 1.4s infinite',
   },
 }

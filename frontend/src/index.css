@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,wght@0,400;0,600;1,400&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap');
+
 *, *::before, *::after {
   box-sizing: border-box;
   margin: 0;
@@ -5,25 +7,36 @@
 }
 
 :root {
-  --bg: #0d0d0d;
-  --bg-panel: #111111;
-  --bg-hover: #1a1a1a;
-  --bg-active: #1f1f1f;
-  --border: #2a2a2a;
-  --border-bright: #3d3d3d;
-  --text-primary: #e8e8e8;
-  --text-secondary: #7a7a7a;
-  --text-muted: #444;
-  --accent: #c8f060;
-  --accent-dim: rgba(200, 240, 96, 0.12);
-  --accent-dim2: rgba(200, 240, 96, 0.06);
-  --user-bubble: #1c1c1c;
-  --agent-bubble: #141414;
-  --trace-bg: #0a0a0a;
-  --error: #ff5c5c;
-  --font-mono: 'IBM Plex Mono', monospace;
-  --font-sans: 'IBM Plex Sans', sans-serif;
-  --sidebar-width: 260px;
+  --bg: #f4f6f9;
+  --bg-panel: #ffffff;
+  --bg-hover: #eef2f7;
+  --bg-active: #e3edf8;
+  --border: #d6dde8;
+  --border-bright: #b8c6d9;
+
+  --text-primary: #1a2434;
+  --text-secondary: #4a5a72;
+  --text-muted: #8a97aa;
+
+  --accent: #1a6fc4;
+  --accent-light: #e8f1fb;
+  --accent-dim: rgba(26, 111, 196, 0.12);
+  --accent-dim2: rgba(26, 111, 196, 0.06);
+
+  --user-bubble: #e8f1fb;
+  --agent-bubble: #ffffff;
+  --trace-bg: #f4f6f9;
+
+  --error: #c0392b;
+  --success: #1a7a4a;
+
+  --font-mono: 'DM Mono', monospace;
+  --font-sans: 'DM Sans', sans-serif;
+  --font-serif: 'Source Serif 4', Georgia, serif;
+
+  --sidebar-width: 272px;
+  --radius: 8px;
+  --radius-sm: 5px;
 }
 
 html, body, #root {
@@ -41,29 +54,20 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-::-webkit-scrollbar {
-  width: 4px;
-}
-::-webkit-scrollbar-track {
-  background: transparent;
-}
-::-webkit-scrollbar-thumb {
-  background: var(--border-bright);
-  border-radius: 2px;
-}
-::-webkit-scrollbar-thumb:hover {
-  background: var(--text-muted);
-}
+::-webkit-scrollbar { width: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border-bright); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
 
 button {
   cursor: pointer;
-  font-family: var(--font-mono);
+  font-family: var(--font-sans);
   border: none;
   background: none;
   color: inherit;
 }
 
-textarea, input {
+textarea, input, select {
   font-family: var(--font-sans);
   color: var(--text-primary);
 }
