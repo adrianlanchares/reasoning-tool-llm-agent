@@ -114,13 +114,14 @@ export function useConversations() {
     [activeId]
   )
 
-  const resolveAssistantMessage = useCallback((assistantMsgId, response, trace, error = false) => {
+  const resolveAssistantMessage = useCallback((assistantMsgId, response, trace, contextLength = 0, error = false) => {
+    const ownTrace = (trace ?? []).slice(contextLength)
     setConversations((prev) =>
       prev.map((c) => ({
         ...c,
         messages: c.messages.map((m) =>
           m.id === assistantMsgId
-            ? { ...m, content: response, trace: trace ?? [], loading: false, error }
+            ? { ...m, content: response, trace: ownTrace, loading: false, error }
             : m
         ),
       }))
