@@ -45,7 +45,7 @@ export default function ChatWindow({
               checked={brainrotMode}
               onChange={onToggleBrainrotMode}
             />
-            Extended view
+            Brainrot Mode
           </label>
         </div>
       </div>
