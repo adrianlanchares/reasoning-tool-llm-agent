@@ -112,7 +112,7 @@ class ReActAgent:
         max_steps=5,
         max_new_tokens=1024,
         *,
-        do_sample=True,
+        do_sample=False,
         temperature=0.3,
         context: list[dict] = None,
     ):
@@ -125,7 +125,7 @@ class ReActAgent:
             {"role": "user", "content": user_query},
         ]
 
-        trace = history[1:]  # Para guardar los pasos dados y mostrarlos en la API
+        trace = [{"role": "user", "content": user_query}]
         generated_text = ""
 
         try:
