@@ -15,3 +15,9 @@ data/
 # Random files
 Dockerfile.train
 requirements.train.txt
+
+# Do not ignore main.tex and sections/ for all docs
+docs/*/**
+!docs/*/main.tex
+!docs/*/sections/
+!docs/*/sections/*.tex
