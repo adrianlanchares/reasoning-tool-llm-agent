@@ -21,3 +21,4 @@ docs/*/**
 !docs/*/main.tex
 !docs/*/sections/
 !docs/*/sections/*.tex
+rag/vectorstore/
