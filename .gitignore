@@ -13,4 +13,13 @@ data/
 Dockerfile.train
 requirements.train.txt
 
-txt.txt
+# Do not ignore main.tex and sections/ for all docs
+docs/*/**
+!docs/*/main.tex
+!docs/*/references.bib
+!docs/*/sections/
+!docs/*/sections/*.tex
+!docs/outputs/
+!docs/outputs/*
+
+rag/vectorstore/

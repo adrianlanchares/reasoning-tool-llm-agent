@@ -162,7 +162,7 @@ class ReActAgent:
                         user_query_for_hyde,
                         max_new_tokens=192,
                         do_sample=True,
-                        temperature=0.3,
+                        temperature=0.0,
                     )
                     tool_args["query"] = user_query_for_hyde + "\n\n" + hyde_doc
 

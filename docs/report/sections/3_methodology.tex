@@ -1,0 +1,46 @@
+\section{Methodology}
+\label{sec:methodology}
+
+To quantitatively evaluate the effectiveness of HyDE in mitigating the vocabulary mismatch problem inherent to standard RAG, we designed an end-to-end evaluation pipeline. This pipeline leverages a custom-curated synthetic dataset mapped to MedlinePlus Health Topics and computes both retrieval accuracy and computational overhead metrics. To empirically test the theoretical vocabulary gaps identified in the Medline corpus, we designed an end-to-end evaluation pipeline.
+
+\subsection{Synthetic Dataset Curation}
+While large-scale consumer health datasets such as MedQuAD \citep{benabacha2019medquad} provide extensive mappings of medical queries to MedlinePlus documents, their queries are largely template-driven (e.g., ``What is [Disease]?''). These highly lexical queries fail to expose the primary vulnerability of standard semantic search: the semantic gap between patient colloquialisms and clinical documentation. To explicitly stress-test this gap, we curated a custom evaluation dataset of 25 targeted queries. Each query is manually mapped to an exact, verifiable MedlinePlus Health Topic.
+
+The dataset is intentionally stratified into four distinct categories to isolate and measure specific retrieval vulnerabilities:
+
+\noindent\textbf{Colloquialisms / Layman Terms.} This category tests the model's ability to map common, non-medical phrases to their clinical counterparts. For example, it evaluates whether the system can map ``stomach flu'' to the target topic \textit{Gastroenteritis}, bypassing the literal text embedding of the word ``flu.''
+
+\noindent\textbf{Symptom-to-Diagnosis.} Queries in this category are highly contextual, multi-sentence narratives describing a cluster of symptoms (e.g., painful urination and pelvic heaviness). This evaluates whether HyDE can synthesize a hypothetical diagnosis (e.g., \textit{Urinary Tract Infections}) prior to retrieval, whereas standard RAG typically retrieves generic pages clustered around surface-level terms like ``pain.''
+
+\noindent\textbf{Medical Jargon.} This category serves as a reverse-dictionary test. Because MedlinePlus utilizes consumer-friendly titles, queries leveraging strict clinical terminology (e.g., ``epistaxis'') must be conceptually bridged to their layman equivalents in the database (e.g., \textit{Nosebleed}).
+
+\noindent\textbf{Rare Diseases.} This category serves as a stress test for the base Large Language Model's (LLM) internal parametric knowledge. It evaluates the model's capacity to generate accurate hypothetical documents for niche genetic conditions or rare disorders based purely on complex symptomatic descriptions.
+
+\subsection{Data Ingestion and XML Preprocessing}
+
+To effectively populate the Chroma vector database, the raw Medline dataset required targeted preprocessing. The original XML corpus contained substantial metadata and relational tags (e.g., \texttt{<related\_pages>}) that act as navigational noise, which can degrade the semantic quality of dense embeddings.
+
+Using a custom parsing pipeline (via \texttt{ingest\_data.py}), we isolated only the high-signal clinical text. By extracting core medical content---such as titles, body text, and summaries---and systematically stripping away structural tags, internal IDs, and formatting metadata, we ensured the sentence-transformer model processed purely factual knowledge. This cleaning process optimized the resulting vector space, enabling the ReAct agent's retrieval tool to match hypothetical documents against clean clinical data.
+
+\subsection{Experimental Pipeline}
+We deployed two parallel API endpoints: a Classic RAG pipeline and a HyDE-augmented pipeline. To ensure deterministic generation of the hypothetical documents and to prevent hallucinatory variance across evaluation runs, the base LLM temperature for the HyDE generation step was strictly set to $T=0$ (greedy decoding).
+
+For each query in the dataset, the prompt is dispatched to both endpoints. The evaluation script captures the full execution trace of the LLM agent, isolating the intermediate tool call outputs (e.g., \texttt{rag\_retrieve\_context}).
+
+\textbf{Transition to Exact URL Validation.}
+Initially, retrieval success was calculated using a case-insensitive substring match between the predefined target topic and the titles of the top $k=3$ retrieved documents. However, manual auditing of the ReAct trace revealed that this approach introduced significant false positives due to spelling similarities, particularly across languages. For example, when evaluating Query 23 regarding the eating disorder \textit{Pica}, the standard RAG pipeline mistakenly retrieved Spanish-language documents concerning ``Picaz\'{o}n'' (Itching) and ``Picaduras de ara\~{n}as'' (Spider bites). Because the string ``pica'' is a literal substring of these terms, the naive evaluator incorrectly recorded a perfect retrieval hit.
+
+To eliminate these false positives and ensure rigorous evaluation, we abandoned substring matching. Our finalized pipeline relies exclusively on exact URL validation. A successful retrieval is now only recorded if the unique MedlinePlus URL associated with the target topic is strictly matched within the context chunks returned by the vector database.
+
+\subsection{Evaluation Metrics}
+To provide a holistic comparison between standard RAG and HyDE, we evaluate the models across four dimensions, balancing retrieval accuracy against computational cost.
+
+\noindent\textbf{Hit Rate @ $k$.} We define Hit Rate @ 3 as a binary metric indicating whether the exact target MedlinePlus topic appears within the top $k=3$ retrieved documents. This metric reflects the absolute success rate of the retrieval step.
+
+\noindent\textbf{Mean Reciprocal Rank (MRR).} To account for the positional relevance of the retrieved documents, we compute the MRR. The rank $r_i$ represents the position (1, 2, or 3) of the target topic in the retrieved list for query $i$. If the topic is not retrieved, the reciprocal rank is 0. This metric heavily penalizes systems that retrieve the correct document but bury it at the bottom of the context window. It is computed as:
+$$ \text{MRR} = \frac{1}{|Q|} \sum_{i=1}^{|Q|} \frac{1}{r_i} $$
+where $|Q|$ is the total number of queries in the dataset.
+
+\noindent\textbf{End-to-End Latency.} We measure the total generation time (in seconds) from the initial dispatch of the HTTP request to the receipt of the final JSON response. This metric captures the temporal overhead introduced by HyDE's requisite intermediate generation step.
+
+\noindent\textbf{Token Usage.} To quantify the computational and financial cost, we record the total tokens consumed per query. For the HyDE pipeline, this explicitly includes the token cost of the ``think'' phase—the generation of the hypothetical document—prior to the vector database search.

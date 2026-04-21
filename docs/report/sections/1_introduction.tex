@@ -1,0 +1,12 @@
+\section{Introduction}
+\label{sec:introduction}
+
+Large Language Models (LLMs) demonstrate remarkable reasoning capabilities but risk hallucination in specialized domains like healthcare. Retrieval-Augmented Generation (RAG) mitigates this by grounding responses in external databases, conceptually separating internal memory from factual retrieval.
+
+However, standard RAG architectures suffer from a critical vocabulary mismatch when applied to highly specialized medical databases. A severe gap in meaning often exists between everyday user queries (e.g., "stomach bug") and formal clinical documentation (e.g., "gastroenteritis"). Consequently, standard search models frequently fail to bridge this gap, resulting in poor retrieval and depriving the reasoning agent of the necessary context to form a safe, accurate diagnosis.
+
+To address this limitation, recent advancements have proposed Hypothetical Document Embeddings (HyDE) \citep{gao2022hyde}. HyDE bypasses the vocabulary gap by changing the search approach to document-to-document matching. By prompting the base LLM to generate a hypothetical, medically-styled document in response to the user's query, the system captures the expected clinical vocabulary and linguistic patterns prior to executing the database search. 
+
+In this paper, we systematically evaluate the efficacy of HyDE against a standard RAG baseline within an autonomous ReAct (Reason + Act) agent architecture \cite{yao2023react}. Powered by Qwen2.5 7B and grounded in a highly preprocessed subset of the Medline dataset \cite{medlineplus}, we stress-test this vocabulary gap using a custom synthetic dataset curated across four categories: Common Terms, Symptoms, Medical Jargon, and Rare Diseases.
+
+Our comprehensive evaluation demonstrates that while HyDE significantly improves retrieval accuracy for complex jargon and rare diseases, it introduces a substantial computational overhead, increasing processing latency. Furthermore, we reveal that HyDE is not universally required; the robust internal knowledge of the Qwen2.5 base model allows standard RAG to achieve performance parity on dense symptom descriptions and everyday terms. These findings underscore the necessity of dynamic query routing in production-grade medical agents, balancing the precision of HyDE against the computational efficiency of standard RAG.
