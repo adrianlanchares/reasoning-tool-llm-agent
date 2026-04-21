@@ -12,3 +12,5 @@ data/
 # Random files
 Dockerfile.train
 requirements.train.txt
+
+txt.txt
