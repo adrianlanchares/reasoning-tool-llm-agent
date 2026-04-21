@@ -7,8 +7,6 @@ services:
     container_name: agent-frontend
     ports:
       - "8021:80"
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
     restart: unless-stopped
     networks:
       - nas_reasoning_network
