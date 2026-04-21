@@ -17,6 +17,27 @@ function LoadingDots() {
   )
 }
 
+const URL_REGEX = /(https?:\/\/[^\s<>"')\]]+)/g
+
+function renderWithLinks(text) {
+  const parts = text.split(URL_REGEX)
+  return parts.map((part, i) =>
+    URL_REGEX.test(part) ? (
+      
+        key={i}
+        href={part}
+        target="_blank"
+        rel="noopener noreferrer"
+        style={styles.link}
+      >
+        {part}
+      </a>
+    ) : (
+      part
+    )
+  )
+}
+
 export default function MessageBubble({ message }) {
   const isUser = message.role === 'user'
 
@@ -30,7 +51,7 @@ export default function MessageBubble({ message }) {
         {message.loading ? (
           <LoadingDots />
         ) : (
-          <p style={styles.content}>{message.content}</p>
+          <p style={styles.content}>{renderWithLinks(message.content)}</p>
         )}
       </div>
 
@@ -96,6 +117,12 @@ const styles = {
     lineHeight: 1.65,
     color: 'var(--text-primary)',
     whiteSpace: 'pre-wrap',
+  },
+  link: {
+    color: 'var(--accent)',
+    textDecoration: 'underline',
+    textDecorationColor: 'rgba(200,240,96,0.4)',
+    wordBreak: 'break-all',
   },
   loadingDots: {
     display: 'inline-flex',
