@@ -137,7 +137,7 @@ const styles = {
     boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
   },
   bubbleUser: {
-    background: 'var(--accent)',
+    background: 'var(--user-bubble)',
     color: '#ffffff',
     borderBottomRightRadius: '3px',
   },
