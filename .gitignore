@@ -2,10 +2,7 @@
 weights/
 hf_cache/
 __pycache__/
-rag_data/
 
-weights_retrain/
-weights_re_retrain/
 
 .DS_Store
 
