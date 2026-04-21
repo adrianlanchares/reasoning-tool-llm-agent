@@ -1,5 +1,6 @@
 """Multi-turn inference loop with tool-use support for Phase 2."""
 
+import re
 from typing import Any
 
 import torch
@@ -13,9 +14,18 @@ from src.tool_use.tools import TOOL_SCHEMAS
 MAX_TOOL_TURNS: int = 3
 MAX_NEW_TOKENS: int = 1024
 
+_ANSWER_PATTERN = re.compile(r"<answer>\s*(.*?)\s*</answer>", re.DOTALL)
+
 
 def format_tool_result(tool_result: str) -> str:
     return f"<tool_result>\n{tool_result}\n</tool_result>"
+
+
+def parse_final_answer(text: str) -> str | None:
+    match = _ANSWER_PATTERN.search(text)
+    if not match:
+        return None
+    return match.group(1).strip()
 
 
 def generate_with_tools(
@@ -76,7 +86,8 @@ def generate_with_tools(
         parsed = parse_tool_call(generated_text)
         if parsed is None:
             # No tool call — this is the final answer
-            return {"response": generated_text, "trace": trace}
+            final_response = parse_final_answer(generated_text)
+            return {"response": final_response, "trace": trace}
 
         # Execute the tool and record in trace
         tool_name, tool_args = parsed
@@ -96,7 +107,8 @@ def generate_with_tools(
         messages.append({"role": "tool", "content": tool_result_tagged})
 
     # Exhausted all turns without a direct final answer
-    return {"response": generated_text, "trace": trace}
+    final_response = parse_final_answer(generated_text)
+    return {"response": final_response, "trace": trace}
 
 
 if __name__ == "__main__":
