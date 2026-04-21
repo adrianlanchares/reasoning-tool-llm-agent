@@ -4,7 +4,7 @@
 To quantitatively evaluate the efficacy of Hypothetical Document Embeddings (HyDE) in mitigating the vocabulary mismatch problem inherent to standard Retrieval-Augmented Generation (RAG), we designed an end-to-end evaluation pipeline. This pipeline leverages a custom-curated synthetic dataset mapped to MedlinePlus Health Topics and computes both retrieval accuracy and computational overhead metrics.
 
 \subsection{Synthetic Dataset Curation}
-While large-scale consumer health datasets such as MedQuAD \citep{benabacha2019} provide extensive mappings of medical queries to MedlinePlus documents, their queries are largely template-driven (e.g., ``What is [Disease]?''). These highly lexical queries fail to expose the primary vulnerability of standard semantic search: the semantic gap between patient colloquialisms and clinical documentation. To explicitly stress-test this gap, we curated a custom evaluation dataset of 25 targeted queries. Each query is manually mapped to an exact, verifiable MedlinePlus Health Topic.
+While large-scale consumer health datasets such as MedQuAD \citep{benabacha2019medquad} provide extensive mappings of medical queries to MedlinePlus documents, their queries are largely template-driven (e.g., ``What is [Disease]?''). These highly lexical queries fail to expose the primary vulnerability of standard semantic search: the semantic gap between patient colloquialisms and clinical documentation. To explicitly stress-test this gap, we curated a custom evaluation dataset of 25 targeted queries. Each query is manually mapped to an exact, verifiable MedlinePlus Health Topic.
 
 The dataset is intentionally stratified into four distinct categories to isolate and measure specific retrieval vulnerabilities:
 
