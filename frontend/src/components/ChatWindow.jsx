@@ -45,7 +45,7 @@ export default function ChatWindow({
               checked={brainrotMode}
               onChange={onToggleBrainrotMode}
             />
-            Brainrot Mode
+            Feeling bored?
           </label>
         </div>
       </div>
