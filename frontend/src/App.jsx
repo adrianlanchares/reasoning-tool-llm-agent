@@ -35,14 +35,12 @@ export default function App() {
         assistantMsgId,
         result.response ?? result.final_answer ?? JSON.stringify(result),
         result.trace ?? [],
-        context.length
       )
     } catch (err) {
       resolveAssistantMessage(
         assistantMsgId,
         `Error: ${err.message}`,
         [],
-        0,
         true
       )
     } finally {
