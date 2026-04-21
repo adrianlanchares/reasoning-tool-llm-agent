@@ -16,4 +16,4 @@ services:
 networks:
   nas_reasoning_network:
     name: nas_reasoning_network
-    driver: bridge
+    external: true

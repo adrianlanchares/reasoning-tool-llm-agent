@@ -1,0 +1,1 @@
+docker compose -f frontend/docker-compose.yml up -d --build frontend

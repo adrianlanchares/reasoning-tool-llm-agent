@@ -1,4 +1,4 @@
-const BASE_URL = 'http://agent-backend:8009'
+const BASE_URL = 'http://agent-backend:8010'
 
 /**
  * Sends a message to the agent's /chat endpoint.
