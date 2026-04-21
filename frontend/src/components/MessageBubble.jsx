@@ -1,4 +1,6 @@
 import React from 'react'
+import ReactMarkdown from 'react-markdown'
+import remarkGfm from 'remark-gfm'
 import TraceViewer from './TraceViewer.jsx'
 
 function LoadingDots() {
@@ -17,24 +19,39 @@ function LoadingDots() {
   )
 }
 
-const URL_REGEX = /(https?:\/\/[^\s<>"')\]]+)/g
-
-function renderWithLinks(text) {
-  const parts = text.split(URL_REGEX)
-  return parts.map((part, i) =>
-    URL_REGEX.test(part) ? (
-      
-        key={i}
-        href={part}
-        target="_blank"
-        rel="noopener noreferrer"
-        style={styles.link}
+function MarkdownContent({ content }) {
+  return (
+    <div style={styles.content}>
+      <ReactMarkdown
+        remarkPlugins={[remarkGfm]}
+        components={{
+          a: ({ node, ...props }) => (
+            <a
+              {...props}
+              target="_blank"
+              rel="noopener noreferrer"
+              style={styles.link}
+            />
+          ),
+          p: ({ children }) => <p style={styles.paragraph}>{children}</p>,
+          ul: ({ children }) => <ul style={styles.list}>{children}</ul>,
+          ol: ({ children }) => <ol style={styles.list}>{children}</ol>,
+          li: ({ children }) => <li style={styles.listItem}>{children}</li>,
+          code: ({ inline, children, ...props }) =>
+            inline ? (
+              <code style={styles.inlineCode} {...props}>
+                {children}
+              </code>
+            ) : (
+              <pre style={styles.codeBlock}>
+                <code {...props}>{children}</code>
+              </pre>
+            ),
+        }}
       >
-        {part}
-      </a>
-    ) : (
-      part
-    )
+        {content || ''}
+      </ReactMarkdown>
+    </div>
   )
 }
 
@@ -47,12 +64,14 @@ export default function MessageBubble({ message }) {
         {isUser ? 'YOU' : 'AGENT'}
       </div>
 
-      <div style={{ ...styles.bubble, ...(isUser ? styles.bubbleUser : styles.bubbleAgent), ...(message.error ? styles.bubbleError : {}) }}>
-        {message.loading ? (
-          <LoadingDots />
-        ) : (
-          <p style={styles.content}>{renderWithLinks(message.content)}</p>
-        )}
+      <div
+        style={{
+          ...styles.bubble,
+          ...(isUser ? styles.bubbleUser : styles.bubbleAgent),
+          ...(message.error ? styles.bubbleError : {}),
+        }}
+      >
+        {message.loading ? <LoadingDots /> : <MarkdownContent content={message.content} />}
       </div>
 
       {!isUser && !message.loading && message.trace?.length > 0 && (
@@ -116,13 +135,40 @@ const styles = {
     fontSize: '14px',
     lineHeight: 1.65,
     color: 'var(--text-primary)',
-    whiteSpace: 'pre-wrap',
+  },
+  paragraph: {
+    margin: 0,
+  },
+  list: {
+    margin: '8px 0',
+    paddingLeft: '20px',
+  },
+  listItem: {
+    margin: '4px 0',
   },
   link: {
     color: 'var(--accent)',
     textDecoration: 'underline',
     textDecorationColor: 'rgba(200,240,96,0.4)',
     wordBreak: 'break-all',
+  },
+  inlineCode: {
+    fontFamily: 'var(--font-mono)',
+    fontSize: '0.95em',
+    background: 'rgba(255,255,255,0.06)',
+    padding: '1px 4px',
+    borderRadius: '4px',
+  },
+  codeBlock: {
+    margin: '8px 0 0',
+    padding: '12px',
+    overflowX: 'auto',
+    borderRadius: '4px',
+    background: 'rgba(255,255,255,0.04)',
+    border: '1px solid var(--border)',
+    fontFamily: 'var(--font-mono)',
+    fontSize: '13px',
+    lineHeight: 1.5,
   },
   loadingDots: {
     display: 'inline-flex',
