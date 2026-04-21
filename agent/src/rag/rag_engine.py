@@ -1,7 +1,7 @@
 from langchain_community.embeddings import SentenceTransformerEmbeddings
 from langchain_community.vectorstores import Chroma
 
-from agent.src.rag.config import DB_DIR, EMBEDDING_MODEL
+from src.rag.config import DB_DIR, EMBEDDING_MODEL
 
 embeddings = SentenceTransformerEmbeddings(model_name=EMBEDDING_MODEL)
 # Cargar la BD existente

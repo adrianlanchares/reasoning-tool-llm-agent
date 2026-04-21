@@ -6,7 +6,7 @@ from typing import Any
 
 import requests
 
-from agent.src.rag.rag_engine import retrieve_context
+from src.rag.rag_engine import retrieve_context
 
 
 @dataclass(frozen=True)

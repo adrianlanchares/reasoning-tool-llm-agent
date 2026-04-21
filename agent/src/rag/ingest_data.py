@@ -11,7 +11,7 @@ from langchain_community.vectorstores import Chroma
 from langchain_core.documents import Document
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 
-from agent.src.rag.config import DB_DIR, EMBEDDING_MODEL, RAG_DATA_DIR
+from src.rag.config import DB_DIR, EMBEDDING_MODEL, RAG_DATA_DIR
 
 CHUNK_SIZE = 1200
 CHUNK_OVERLAP = 200

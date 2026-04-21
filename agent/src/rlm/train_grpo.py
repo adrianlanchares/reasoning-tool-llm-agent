@@ -11,7 +11,7 @@ from peft import PeftModel
 from tqdm_loggable.auto import tqdm
 from transformers import AutoModelForCausalLM, AutoTokenizer
 
-from agent.src.system_prompt import TRAINING_SYSTEM_PROMPT
+from src.system_prompt import TRAINING_SYSTEM_PROMPT
 
 logging.basicConfig(level=logging.INFO)
 

@@ -3,9 +3,9 @@ from typing import Any
 
 import torch
 
-from agent.src.system_prompt import HYDE_SYSTEM_PROMPT, SYSTEM_PROMPT
-from agent.src.tool_use.tool_handler import execute_tool, parse_tool_call
-from agent.src.tool_use.tools import TOOL_SCHEMAS
+from src.system_prompt import HYDE_SYSTEM_PROMPT, SYSTEM_PROMPT
+from src.tool_use.tool_handler import execute_tool, parse_tool_call
+from src.tool_use.tools import TOOL_SCHEMAS
 
 _ANSWER_PATTERN = re.compile(r"<answer>\s*(.*?)\s*</answer>", re.DOTALL)
 

@@ -5,10 +5,10 @@ from typing import Any
 import torch
 from transformers import AutoTokenizer, PreTrainedModel
 
-from agent.src.rlm.load_model import load_rlm_model
-from agent.src.system_prompt import SYSTEM_PROMPT
-from agent.src.tool_use.tool_handler import execute_tool, parse_tool_call
-from agent.src.tool_use.tools import TOOL_SCHEMAS
+from src.rlm.load_model import load_rlm_model
+from src.system_prompt import SYSTEM_PROMPT
+from src.tool_use.tool_handler import execute_tool, parse_tool_call
+from src.tool_use.tools import TOOL_SCHEMAS
 
 MAX_TOOL_TURNS: int = 3
 MAX_NEW_TOKENS: int = 1024

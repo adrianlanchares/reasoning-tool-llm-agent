@@ -10,9 +10,9 @@ from pydantic import BaseModel
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 # --- IMPORTACIONES DE LOS MÓDULOS DE LOS ALUMNOS ---
-from agent.src.react.agent import ReActAgent
-from agent.src.rlm.load_model import load_rlm_model
-from agent.src.tool_use.inference import generate_with_tools
+from src.react.agent import ReActAgent
+from src.rlm.load_model import load_rlm_model
+from src.tool_use.inference import generate_with_tools
 
 
 def get_freest_gpu():

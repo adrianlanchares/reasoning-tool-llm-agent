@@ -7,7 +7,7 @@ from peft import LoraConfig, TaskType
 from transformers import AutoModelForCausalLM, AutoTokenizer, TrainingArguments
 from trl import SFTTrainer
 
-from agent.src.system_prompt import TRAINING_SYSTEM_PROMPT
+from src.system_prompt import TRAINING_SYSTEM_PROMPT
 
 # Configuration
 MODEL_NAME: str = "Qwen/Qwen2.5-7B-Instruct"
