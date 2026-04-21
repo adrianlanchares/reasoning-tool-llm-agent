@@ -1,6 +1,6 @@
 import React, { useRef, useEffect } from 'react'
 
-export default function ChatInput({ onSend, disabled }) {
+export default function ChatInput({ onSend, disabled, selectedModel, onSelectModel }) {
   const textareaRef = useRef(null)
 
   // Auto-grow textarea
@@ -32,6 +32,19 @@ export default function ChatInput({ onSend, disabled }) {
   return (
     <div style={styles.wrapper}>
       <div style={styles.inner}>
+        <select
+          value={selectedModel}
+          onChange={(e) => onSelectModel(e.target.value)}
+          disabled={disabled}
+          style={styles.modelSelect}
+          title="Select model"
+        >
+          <option value="full">full</option>
+          <option value="reason-only">reason-only</option>
+          <option value="tool-only">tool-only</option>
+          <option value="rag-only">rag-only</option>
+        </select>
+
         <textarea
           ref={textareaRef}
           style={styles.textarea}
@@ -41,6 +54,7 @@ export default function ChatInput({ onSend, disabled }) {
           onKeyDown={handleKeyDown}
           disabled={disabled}
         />
+
         <button
           style={{ ...styles.sendBtn, ...(disabled ? styles.sendBtnDisabled : {}) }}
           onClick={submit}
@@ -76,6 +90,19 @@ const styles = {
     borderRadius: '6px',
     padding: '8px 12px',
     transition: 'border-color 0.15s',
+  },
+  modelSelect: {
+    flexShrink: 0,
+    alignSelf: 'flex-end',
+    height: '32px',
+    padding: '0 10px',
+    borderRadius: '4px',
+    border: '1px solid var(--border)',
+    background: 'var(--bg)',
+    color: 'var(--text-primary)',
+    fontSize: '12px',
+    fontFamily: 'var(--font-mono)',
+    outline: 'none',
   },
   textarea: {
     flex: 1,

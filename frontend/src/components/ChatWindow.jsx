@@ -13,6 +13,8 @@ export default function ChatWindow({
   conversation,
   onSend,
   isLoading,
+  selectedModel,
+  onSelectModel,
   brainrotMode,
   onToggleBrainrotMode,
 }) {
@@ -67,7 +69,12 @@ export default function ChatWindow({
       </div>
 
       {/* Input */}
-      <ChatInput onSend={onSend} disabled={isLoading} />
+      <ChatInput 
+        onSend={onSend} 
+        disabled={isLoading} 
+        selectedModel={selectedModel}
+        onSelectModel={onSelectModel}
+      />
     </div>
   )
 }

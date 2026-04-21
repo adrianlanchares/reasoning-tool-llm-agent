@@ -1,16 +1,24 @@
 const BASE_URL = '/api'
 
+export const MODEL_ENDPOINTS = {
+  full: '/chat',
+  'reason-only': '/phase1/reasoning',
+  'tool-only': '/phase2/tools',
+  'rag-only': '/phase3/rag',
+}
+
 /**
- * Sends a message to the agent's /chat endpoint.
+ * Sends a message to the selected model endpoint.
  *
- * @param {string} prompt - The user's current message.
- * @param {Array<{role: string, content: string}>} context - Previous messages in the conversation.
- *   The agent's `run()` method prepends the system prompt and the current user message internally,
- *   so we only send the prior turns as context (not the current prompt again).
+ * @param {string} prompt
+ * @param {Array<{role: string, content: string}>} context
+ * @param {'full' | 'reason-only' | 'tool-only' | 'rag-only'} model
  * @returns {Promise<{ response: string, trace: Array }>}
  */
-export async function sendMessage(prompt, context = []) {
-  const response = await fetch(`${BASE_URL}/chat`, {
+export async function sendMessage(prompt, context = [], model = 'full') {
+  const endpoint = MODEL_ENDPOINTS[model] ?? MODEL_ENDPOINTS.full
+
+  const response = await fetch(`${BASE_URL}${endpoint}`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ prompt, context }),

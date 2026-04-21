@@ -19,6 +19,7 @@ export default function App() {
 
   const [isLoading, setIsLoading] = useState(false)
   const [brainrotMode, setBrainrotMode] = useState(false)
+  const [selectedModel, setSelectedModel] = useState('full')
 
   async function handleSend(content) {
     if (isLoading) return
@@ -29,7 +30,7 @@ export default function App() {
     try {
       // context = all prior messages in the conversation (already formatted for the API).
       // The current user `content` is sent as `prompt`, separate from `context`.
-      const result = await sendMessage(content, context)
+      const result = await sendMessage(content, context, selectedModel)
       resolveAssistantMessage(
         assistantMsgId,
         result.response ?? result.final_answer ?? JSON.stringify(result),
@@ -71,6 +72,8 @@ export default function App() {
         conversation={activeConversation}
         onSend={handleSend}
         isLoading={isLoading}
+        selectedModel={selectedModel}
+        onSelectModel={setSelectedModel}
         brainrotMode={brainrotMode}
         onToggleBrainrotMode={() => setBrainrotMode((v) => !v)}
       />
