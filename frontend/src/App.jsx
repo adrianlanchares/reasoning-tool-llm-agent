@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import Sidebar from './components/Sidebar.jsx'
 import ChatWindow from './components/ChatWindow.jsx'
+import LoadingModal from './components/LoadingModal.jsx'
 import { useConversations } from './hooks/useConversations.js'
 import { sendMessage } from './services/agentApi.js'
 
@@ -70,6 +71,7 @@ export default function App() {
         onSend={handleSend}
         isLoading={isLoading}
       />
+      <LoadingModal visible={isLoading} />
     </div>
   )
 }
