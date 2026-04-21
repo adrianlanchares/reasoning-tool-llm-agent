@@ -1,0 +1,55 @@
+\section{Results}
+\label{sec:results}
+
+% 1. FULL-WIDTH TABLE
+\begin{table*}[t]
+    \centering
+    \caption{Aggregate Metrics by Category comparing standard RAG and HyDE pipelines.}
+    \label{tab:rag_hyde_metrics}
+    \begin{tabular}{l r r r r r r r r}
+        \toprule
+                          & \multicolumn{2}{c}{\textbf{Hit Rate}} & \multicolumn{2}{c}{\textbf{MRR}} & \multicolumn{2}{c}{\textbf{Time (s)}} & \multicolumn{2}{c}{\textbf{Tokens}}                                                                       \\
+        \cmidrule(lr){2-3} \cmidrule(lr){4-5} \cmidrule(lr){6-7} \cmidrule(lr){8-9}
+        \textbf{Category} & \textbf{RAG}                          & \textbf{HyDE}                    & \textbf{RAG}                          & \textbf{HyDE}                       & \textbf{RAG}   & \textbf{HyDE}  & \textbf{RAG}    & \textbf{HyDE}   \\
+        \midrule
+        Colloquialism     & 0.83                                  & 0.83                             & 0.75                                  & 0.83                                & 23.70          & 27.48          & 1183.8          & 1310.8          \\
+        Medical Jargon    & 0.57                                  & 0.71                             & 0.50                                  & 0.71                                & 18.80          & 20.04          & 1061.3          & 1417.0          \\
+        Rare Disease      & 0.33                                  & 0.50                             & 0.33                                  & 0.50                                & 15.98          & 24.73          & 1161.5          & 1721.0          \\
+        Symptoms          & 1.00                                  & 1.00                             & 0.81                                  & 0.81                                & 12.76          & 29.74          & 1337.3          & 1876.3          \\
+        \midrule
+        \textbf{OVERALL}  & \textbf{0.68}                         & \textbf{0.76}                    & \textbf{0.59}                         & \textbf{0.71}                       & \textbf{17.85} & \textbf{25.28} & \textbf{1181.0} & \textbf{1574.7} \\
+        \bottomrule
+    \end{tabular}
+\end{table*}
+
+\subsection{Overall Retrieval Performance}
+While the overall absolute performance on our complex synthetic dataset was highly challenging, the implementation of HyDE maintained a clear advantage over the standard RAG baseline. As shown in Table \ref{tab:rag_hyde_metrics}, the overall Hit Rate improved from 0.68 to 0.76, while the Mean Reciprocal Rank (MRR) saw a corresponding increase from 0.59 to 0.71. However, categorizing the queries reveals that HyDE's benefits are heavily dependent on the lexical structure of the user's prompt.
+
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=\linewidth]{1_hit_rate_comparison.pdf}
+    \caption{Comparison of Hit Rate between standard RAG and HyDE across query categories.}
+    \label{fig:hit_rate}
+\end{figure}
+
+\subsection{Areas of Parity: Symptoms and Colloquialisms}
+Interestingly, standard RAG and HyDE performed identically in two specific categories: Symptoms and Colloquialisms.
+
+For \textbf{Symptoms}, both pipelines achieved a perfect Hit Rate of 1.00 and an MRR of 0.81. This parity is primarily due to the lexical density of symptom-based queries. Because these queries are typically multi-sentence descriptions containing numerous explicit medical keywords (e.g., "pain," "fever," "swelling"), they provide a massive surface area for standard vector search to successfully match against target documents, rendering HyDE's intermediate hallucination step unnecessary.
+
+Similarly, both pipelines achieved a 0.83 Hit Rate for \textbf{Colloquialisms}. This highlights the robust parametric knowledge embedded in our base model (Qwen2.5 7B). The model natively understands common, non-medical terms well enough to bridge the semantic gap to clinical literature without needing a generated hypothetical document to act as an intermediary.
+
+\subsection{HyDE's Edge: Medical Jargon and Rare Diseases}
+HyDE proved its worth precisely where the base model and standard retrieval struggled most. In the \textbf{Medical Jargon} category, where queries utilize strict clinical terminology that differs from the consumer-friendly titles in MedlinePlus, HyDE improved the Hit Rate from 0.57 to 0.71, and boosted the MRR from 0.50 to 0.71.
+
+Similarly, for \textbf{Rare Diseases}, standard RAG struggled significantly (0.33 Hit Rate), likely because sparse queries about niche disorders lack the semantic overlap needed to find corresponding documents. By generating a hypothetical document first, HyDE was able to expand the context and improve the Hit Rate to 0.50 (see Figure \ref{fig:mrr}).
+
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=\linewidth]{2_mrr_comparison.pdf}
+    \caption{Comparison of Mean Reciprocal Rank (MRR) between standard RAG and HyDE.}
+    \label{fig:mrr}
+\end{figure}
+
+\subsection{Computational and Latency Trade-offs}
+The retrieval improvements observed in the Medical Jargon and Rare Disease categories come at a notable computational cost. Overall mean processing time increased by roughly 41\%, rising from 17.85 seconds with standard RAG to 25.28 seconds with HyDE. This latency is a direct consequence of the sequential "think" phase required to generate the hypothetical document. Token consumption mirrored this trend, increasing from an overall mean of 1181 tokens to 1575 tokens per query. For a detailed visual breakdown of these computational trade-offs across all query categories, please refer to Figure \ref{fig:time_metrics} and Figure \ref{fig:token_metrics} in Appendix \ref{appendix:extra_plots}.

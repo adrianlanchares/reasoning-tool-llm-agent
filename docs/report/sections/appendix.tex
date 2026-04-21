@@ -1,0 +1,22 @@
+\appendix
+
+\section{Additional Computational Metrics}
+\label{appendix:extra_plots}
+
+This section provides a detailed visual breakdown of the computational trade-offs introduced by the HyDE extension, specifically regarding processing latency and token consumption.
+
+\begin{figure}[!h]
+    \centering
+    % Replace 'time_plot.png' with your actual image file name
+    \includegraphics[width=\linewidth]{3_time_comparison.pdf}
+    \caption{Comparison of mean processing time (in seconds) between standard RAG and HyDE across different query categories.}
+    \label{fig:time_metrics}
+\end{figure}
+
+\begin{figure}[!h]
+    \centering
+    % Replace 'tokens_plot.png' with your actual image file name
+    \includegraphics[width=\linewidth]{4_token_comparison.pdf}
+    \caption{Comparison of mean token consumption between standard RAG and HyDE across different query categories.}
+    \label{fig:token_metrics}
+\end{figure}

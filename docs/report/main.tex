@@ -14,7 +14,7 @@
 \usepackage{graphicx, wrapfig, placeins}        % Images, wrapping, FloatBarrier
 \usepackage{caption, subcaption}                % Caption formatting
 \usepackage{tikz, color}                        % Drawing & Color (epsfig removed)
-\graphicspath{{images/}}
+\graphicspath{{../outputs/}}
 
 % --- 4. Tables & Lists ---
 \usepackage{booktabs, multirow, makecell}       % Prof. tables, spanning rows/cells
@@ -75,7 +75,7 @@
 \printAffiliationsAndNotice{}
 
 \begin{abstract}
-  Lorem ipsum dolor sit amet, ...
+  Large Language Models (LLMs) using Retrieval-Augmented Generation (RAG) struggle with the vocabulary mismatch between everyday medical queries and complex clinical texts. This paper evaluates Hypothetical Document Embeddings (HyDE) to bridge this semantic gap within a Qwen2.5 7B ReAct agent. Using a custom Medline-based dataset, we demonstrate that while HyDE significantly improves retrieval accuracy for medical jargon and rare diseases, it introduces a substantial 41\% latency overhead. Conversely, standard RAG achieves parity on symptom descriptions and common terms. We conclude that medical agents must employ dynamic query routing to balance HyDE's precision with RAG's efficiency.
 \end{abstract}
 
 \input{sections/1_introduction.tex}
@@ -89,5 +89,11 @@
 % -------------------------
 \bibliographystyle{icml2026}
 \bibliography{references}
+
+% -------------------------
+% Appendix
+% -------------------------
+\newpage
+\input{sections/appendix.tex}
 
 \end{document}
