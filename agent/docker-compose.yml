@@ -47,6 +47,7 @@ services:
       context: .
       dockerfile: Dockerfile
     image: nas-rlm-app:latest
+    container_name: nas-agent
     ports:
       - "8010:8000"
     deploy:
@@ -65,6 +66,8 @@ services:
       HF_HOME: /root/.cache/huggingface
     working_dir: /app
     command: ["python3", "-m", "src.api.app"]
+    networks:
+      - nas_reasoning_network
 
   agent-bash:
     build:
@@ -89,3 +92,10 @@ services:
       HF_HOME: /root/.cache/huggingface
     working_dir: /app
     command: ["bash"]
+    networks:
+      - nas_reasoning_network
+
+networks:
+  nas_reasoning_network:
+    name: nas_reasoning_network
+    driver: bridge
