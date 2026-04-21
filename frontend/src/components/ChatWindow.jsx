@@ -9,7 +9,13 @@ const EMPTY_SVG = (
   </svg>
 )
 
-export default function ChatWindow({ conversation, onSend, isLoading }) {
+export default function ChatWindow({
+  conversation,
+  onSend,
+  isLoading,
+  brainrotMode,
+  onToggleBrainrotMode,
+}) {
   const bottomRef = useRef(null)
 
   useEffect(() => {
@@ -23,9 +29,21 @@ export default function ChatWindow({ conversation, onSend, isLoading }) {
       {/* Top bar */}
       <div style={styles.topbar}>
         <span style={styles.topbarTitle}>{conversation.title}</span>
-        <span style={styles.topbarCount}>
-          {conversation.messages.filter((m) => m.role === 'user').length} messages
-        </span>
+
+        <div style={styles.topbarRight}>
+          <label style={styles.toggleLabel}>
+            <input
+              type="checkbox"
+              checked={brainrotMode}
+              onChange={onToggleBrainrotMode}
+            />
+            Brainrot Mode
+          </label>
+
+          <span style={styles.topbarCount}>
+            {conversation.messages.filter((m) => m.role === 'user').length} messages
+          </span>
+        </div>
       </div>
 
       {/* Messages */}
@@ -89,6 +107,23 @@ const styles = {
     color: 'var(--text-muted)',
     letterSpacing: '0.05em',
     flexShrink: 0,
+  },
+  topbarRight: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '16px',
+    flexShrink: 0,
+  },
+
+  toggleLabel: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '6px',
+    fontFamily: 'var(--font-mono)',
+    fontSize: '11px',
+    color: 'var(--text-secondary)',
+    letterSpacing: '0.03em',
+    userSelect: 'none',
   },
   messages: {
     flex: 1,

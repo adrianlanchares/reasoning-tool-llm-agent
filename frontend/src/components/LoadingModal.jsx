@@ -1,7 +1,7 @@
 import React from 'react'
 
-export default function LoadingModal({ visible }) {
-  if (!visible) return null
+export default function LoadingModal({ visible, brainrotMode }) {
+  if (!visible || !brainrotMode) return null
 
   return (
     <div style={styles.overlay}>

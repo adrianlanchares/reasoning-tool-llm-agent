@@ -18,6 +18,7 @@ export default function App() {
   } = useConversations()
 
   const [isLoading, setIsLoading] = useState(false)
+  const [brainrotMode, setBrainrotMode] = useState(false)
 
   async function handleSend(content) {
     if (isLoading) return
@@ -70,8 +71,10 @@ export default function App() {
         conversation={activeConversation}
         onSend={handleSend}
         isLoading={isLoading}
+        brainrotMode={brainrotMode}
+        onToggleBrainrotMode={() => setBrainrotMode((v) => !v)}
       />
-      <LoadingModal visible={isLoading} />
+      <LoadingModal visible={isLoading} brainrotMode={brainrotMode} />
     </div>
   )
 }
@@ -84,4 +87,5 @@ const styles = {
     overflow: 'hidden',
     background: 'var(--bg)',
   },
+  
 }
