@@ -5,14 +5,13 @@ from pathlib import Path
 from typing import List
 
 from bs4 import BeautifulSoup
-from langchain_core.documents import Document
 from langchain_community.document_loaders import TextLoader
 from langchain_community.embeddings import SentenceTransformerEmbeddings
 from langchain_community.vectorstores import Chroma
+from langchain_core.documents import Document
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 
-from src.rag.config import RAG_DATA_DIR, DB_DIR, EMBEDDING_MODEL
-
+from agent.src.rag.config import DB_DIR, EMBEDDING_MODEL, RAG_DATA_DIR
 
 CHUNK_SIZE = 1200
 CHUNK_OVERLAP = 200

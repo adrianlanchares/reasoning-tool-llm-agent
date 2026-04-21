@@ -10,9 +10,9 @@ from pydantic import BaseModel
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 # --- IMPORTACIONES DE LOS MÓDULOS DE LOS ALUMNOS ---
-from src.react.agent import ReActAgent
-from src.rlm.load_model import load_rlm_model
-from src.tool_use.inference import generate_with_tools
+from agent.src.react.agent import ReActAgent
+from agent.src.rlm.load_model import load_rlm_model
+from agent.src.tool_use.inference import generate_with_tools
 
 
 def get_freest_gpu():
@@ -105,9 +105,11 @@ async def phase1_endpoint(request: QueryRequest):
             "response": "ERROR: Modelo de Fase 1 no cargado.",
             "details": {"status": "model_not_loaded"},
         }
-    
+
     # Make model not use tools
-    request.prompt += "\n\n(Note: For this phase, do NOT call any tools. Just reason and answer.)"
+    request.prompt += (
+        "\n\n(Note: For this phase, do NOT call any tools. Just reason and answer.)"
+    )
 
     try:
         # Usar la función de inferencia de Fase 1
@@ -138,7 +140,9 @@ async def phase2_endpoint(request: QueryRequest):
             "details": {"status": "model_not_loaded"},
         }
 
-    request.prompt += "\n\n(Note: For this phase, do not use the rag_retrieve_context tool.)"
+    request.prompt += (
+        "\n\n(Note: For this phase, do not use the rag_retrieve_context tool.)"
+    )
 
     try:
         # Use the multi-turn tool-use inference loop
@@ -176,7 +180,9 @@ async def phase3_endpoint(request: QueryRequest):
             "details": {"status": "model_not_loaded"},
         }
 
-    request.prompt += "\n\n(Note: For this phase, only use the rag_retrieve_context tool if needed.)"
+    request.prompt += (
+        "\n\n(Note: For this phase, only use the rag_retrieve_context tool if needed.)"
+    )
 
     try:
         # Use the multi-turn tool-use inference loop
@@ -219,12 +225,13 @@ async def phase4_endpoint(request: QueryRequest):
 async def chat_endpoint(request: QueryRequest):
     if not AGENT:
         return {"final_answer": "ERROR: Agente no inicializado.", "trace": []}
-    
+
     print(request)
 
     result = AGENT.run(request.prompt, context=request.context)
 
     return result
+
 
 if __name__ == "__main__":
     # Para correr localmente: python api/app.py
